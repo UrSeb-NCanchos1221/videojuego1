@@ -3,62 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zombie Shooter</title>
+    <title>Zombie Survival</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Roboto+Mono:wght@400;700&display=swap');
-
-        body {
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
+        
+        body, html {
             margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
             overflow: hidden;
-            background-color: #1a1a1a;
-            color: #eee;
+            background-color: #111827; /* Tailwind gray-900 */
             font-family: 'Roboto Mono', monospace;
-            touch-action: none;
+            touch-action: none; /* Prevent scroll on mobile */
         }
-
-        #gameCanvas {
+        
+        canvas {
             display: block;
-            width: 100vw;
-            height: 100vh;
-        }
-
-        #ui-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
             width: 100%;
             height: 100%;
-            pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        .hud-text {
-            font-size: 1.5rem;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
-            color: #fff;
-        }
-
-        #health-bar-container {
-            width: 200px;
-            height: 20px;
-            background-color: rgba(255, 0, 0, 0.3);
-            border: 2px solid #fff;
-            border-radius: 10px;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-
-        #health-bar-fill {
-            width: 100%;
-            height: 100%;
-            background-color: #ff3333;
-            transition: width 0.2s ease-out, background-color 0.2s ease-out;
         }
 
         .overlay {
@@ -67,233 +31,317 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.85);
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
-            pointer-events: auto;
+            align-items: center;
+            background-color: rgba(17, 24, 39, 0.85);
             z-index: 10;
+            color: white;
+            pointer-events: none; /* Let clicks pass through unless on buttons */
         }
 
-        .hidden {
-            display: none !important;
-        }
-
-        h1 {
-            font-family: 'Creepster', cursive;
-            font-size: 5rem;
-            color: #22c55e;
-            text-shadow: 0 0 10px #22c55e, 0 0 20px #22c55e;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .overlay h2 {
-            font-size: 3rem;
-            color: #ef4444;
-            margin-bottom: 10px;
-        }
-
-        .overlay p {
-            font-size: 1.5rem;
-            margin-bottom: 30px;
-            text-align: center;
-            max-width: 80%;
+        .overlay-content {
+            pointer-events: auto;
         }
 
         .btn {
-            background-color: #4b5563;
+            padding: 12px 24px;
+            font-size: 1.2rem;
+            font-weight: bold;
             color: white;
-            border: 2px solid #9ca3af;
-            padding: 15px 30px;
-            font-size: 1.5rem;
-            font-family: inherit;
-            cursor: pointer;
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            border: none;
             border-radius: 8px;
-            transition: all 0.2s;
+            cursor: pointer;
             text-transform: uppercase;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.5);
-        }
-
-        .btn:hover {
-            background-color: #6b7280;
-            transform: scale(1.05);
-            border-color: #fff;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: transform 0.1s, box-shadow 0.1s;
+            pointer-events: auto;
         }
 
         .btn:active {
             transform: scale(0.95);
         }
 
-        #mobile-controls {
-            display: none;
+        .ui-layer {
             position: absolute;
-            bottom: 20px;
+            top: 0;
             left: 0;
             width: 100%;
-            justify-content: space-between;
-            padding: 0 30px;
-            box-sizing: border-box;
-            pointer-events: auto;
+            height: 100%;
+            pointer-events: none;
             z-index: 5;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
-        .joystick-zone {
-            width: 150px;
-            height: 150px;
-            background-color: rgba(255, 255, 255, 0.1);
+        /* Mobile Controls */
+        .mobile-joystick {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            width: 120px;
+            height: 120px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
             border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            position: relative;
-            touch-action: none;
+            display: none;
+            pointer-events: auto;
         }
 
-        .joystick-knob {
-            width: 60px;
-            height: 60px;
-            background-color: rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
+        .mobile-joystick-knob {
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-        }
-
-        #shoot-btn {
-            width: 100px;
-            height: 100px;
-            background-color: rgba(239, 68, 68, 0.5);
-            border: 2px solid rgba(239, 68, 68, 0.8);
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.5);
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            font-weight: bold;
-            user-select: none;
-            touch-action: none;
-        }
-        
-        #shoot-btn:active {
-            background-color: rgba(239, 68, 68, 0.8);
+            transform: translate(-50%, -50%);
         }
 
-        @media (max-width: 768px) {
-            h1 { font-size: 3.5rem; }
-            .overlay h2 { font-size: 2.5rem; }
-            .btn { font-size: 1.2rem; padding: 10px 20px; }
-            .hud-text { font-size: 1.2rem; }
-            #health-bar-container { width: 150px; }
+        .mobile-shoot {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            width: 80px;
+            height: 80px;
+            background: rgba(239, 68, 68, 0.5);
+            border-radius: 50%;
+            border: 2px solid rgba(239, 68, 68, 0.8);
+            display: none;
+            pointer-events: auto;
         }
     </style>
 </head>
 <body>
-
-    <!-- Game Canvas -->
     <canvas id="gameCanvas"></canvas>
 
-    <!-- UI Layer -->
-    <div id="ui-layer">
-        <div class="top-bar flex justify-between items-start w-full">
-            <div>
-                <div id="scoreDisplay" class="hud-text">Score: 0</div>
-                <div id="waveDisplay" class="hud-text text-yellow-400 mt-1">Wave: 1</div>
-            </div>
-            <div class="text-right">
-                <div class="hud-text">Salud</div>
-                <div id="health-bar-container">
-                    <div id="health-bar-fill"></div>
-                </div>
+    <div class="ui-layer flex justify-between items-start">
+        <div class="bg-gray-800 bg-opacity-70 p-4 rounded-lg shadow-lg border border-gray-700">
+            <div class="text-xl font-bold text-white mb-2">Puntuación: <span id="scoreDisplay" class="text-yellow-400">0</span></div>
+            <div class="text-lg font-bold text-gray-300">Oleada: <span id="waveDisplay" class="text-blue-400">1</span></div>
+        </div>
+        
+        <div class="bg-gray-800 bg-opacity-70 p-3 rounded-lg shadow-lg border border-gray-700 w-48">
+            <div class="text-sm font-bold text-white mb-1">Salud</div>
+            <div class="w-full h-4 bg-gray-900 rounded-full overflow-hidden">
+                <div id="health-bar-fill" class="h-full bg-red-500 transition-all duration-200" style="width: 100%;"></div>
             </div>
         </div>
-    </div>
-
-    <!-- Mobile Controls -->
-    <div id="mobile-controls">
-        <div id="movement-joystick" class="joystick-zone">
-            <div id="movement-knob" class="joystick-knob"></div>
-        </div>
-        <div id="shoot-btn">FIRE</div>
     </div>
 
     <!-- Start Screen -->
     <div id="startScreen" class="overlay">
-        <h1>ZOMBIE<br>SURVIVAL</h1>
-        <p>Sobrevive a las hordas. Muévete con WASD/Flechas. Dispara con el Ratón.</p>
+        <h1 class="text-5xl md:text-7xl font-bold text-white mb-4 text-center tracking-tighter" style="text-shadow: 0 0 10px rgba(239,68,68,0.8);">ZOMBIE<br>SURVIVAL</h1>
+        <p class="mb-6 text-gray-300 text-center max-w-md">Sobrevive a las hordas. Muévete con WASD/Flechas. Dispara con el Ratón.</p>
+        
+        <div id="customization-panel" class="mb-6 flex flex-col gap-3 w-full max-w-sm bg-gray-800 p-5 rounded-lg border border-gray-600 shadow-xl pointer-events-auto">
+            <h3 class="text-white text-xl font-bold mb-1 text-center border-b border-gray-600 pb-2">Personalizar Nombres</h3>
+            
+            <div class="flex justify-between items-center">
+                <label class="text-blue-400 font-bold">Tú (Jugador):</label>
+                <input type="text" id="inputPlayerName" value="HÉROE" maxlength="12" class="p-1 text-sm rounded bg-gray-700 text-white border border-blue-500 w-36 text-center uppercase focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div class="flex justify-between items-center">
+                <label class="text-red-500 font-bold">Exploder:</label>
+                <input type="text" id="inputExploderName" value="URIEL" maxlength="12" class="p-1 text-sm rounded bg-gray-700 text-white border border-red-500 w-36 text-center uppercase focus:outline-none focus:ring-2 focus:ring-red-500">
+            </div>
+            <div class="flex justify-between items-center">
+                <label class="text-purple-400 font-bold">Spitter:</label>
+                <input type="text" id="inputSpitterName" value="RAMIRO" maxlength="12" class="p-1 text-sm rounded bg-gray-700 text-white border border-purple-500 w-36 text-center uppercase focus:outline-none focus:ring-2 focus:ring-purple-500">
+            </div>
+            <div class="flex justify-between items-center">
+                <label class="text-green-500 font-bold">Tanque:</label>
+                <input type="text" id="inputTankName" value="GOLIAT" maxlength="12" class="p-1 text-sm rounded bg-gray-700 text-white border border-green-500 w-36 text-center uppercase focus:outline-none focus:ring-2 focus:ring-green-500">
+            </div>
+        </div>
+
         <button id="startBtn" class="btn">Empezar a Jugar</button>
     </div>
 
     <!-- Game Over Screen -->
     <div id="gameOverScreen" class="overlay hidden">
-        <h2>HAS MUERTO</h2>
-        <p id="finalScore" class="text-2xl font-bold mb-2">Puntuación Final: 0</p>
-        <p id="finalWave" class="text-xl text-yellow-400 mb-6">Oleada Alcanzada: 1</p>
+        <h1 class="text-6xl font-bold text-red-600 mb-2" style="text-shadow: 0 0 15px rgba(220,38,38,0.8);">HAS MUERTO</h1>
+        <div class="text-2xl text-white mb-6">
+            Puntuación Final: <span id="finalScore" class="text-yellow-400 font-bold">0</span><br>
+            Sobreviviste hasta la Oleada: <span id="finalWave" class="text-blue-400 font-bold">1</span>
+        </div>
         <button id="restartBtn" class="btn">Jugar de Nuevo</button>
+    </div>
+
+    <!-- Mobile Controls Container -->
+    <div id="mobile-controls" class="ui-layer" style="z-index: 20; pointer-events: none;">
+        <div id="movement-joystick" class="mobile-joystick">
+            <div id="movement-knob" class="mobile-joystick-knob"></div>
+        </div>
+        <div id="shoot-btn" class="mobile-shoot"></div>
     </div>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-
-        // UI Elements
+        
         const startScreen = document.getElementById('startScreen');
         const gameOverScreen = document.getElementById('gameOverScreen');
-        const startBtn = document.getElementById('startBtn');
-        const restartBtn = document.getElementById('restartBtn');
         const scoreDisplay = document.getElementById('scoreDisplay');
         const waveDisplay = document.getElementById('waveDisplay');
         const healthBarFill = document.getElementById('health-bar-fill');
         const finalScore = document.getElementById('finalScore');
         const finalWave = document.getElementById('finalWave');
         const mobileControls = document.getElementById('mobile-controls');
+        
+        // Input fields for custom names
+        const inputPlayerName = document.getElementById('inputPlayerName');
+        const inputExploderName = document.getElementById('inputExploderName');
+        const inputSpitterName = document.getElementById('inputSpitterName');
+        const inputTankName = document.getElementById('inputTankName');
+        
         const movementJoystick = document.getElementById('movement-joystick');
         const movementKnob = document.getElementById('movement-knob');
         const shootBtn = document.getElementById('shoot-btn');
 
-        // Game State
         let animationId;
-        let isGameRunning = false;
+        let gameActive = false;
+        let isMobile = false;
+        
         let score = 0;
         let wave = 1;
         let frameCount = 0;
-        let isMobile = false;
+        let enemiesToSpawn = 0;
 
-        // Resize canvas to fill window
-        function resizeCanvas() {
+        let customNames = {
+            player: 'HÉROE',
+            exploder: 'URIEL',
+            spitter: 'RAMIRO',
+            tank: 'GOLIAT'
+        };
+
+        // Resize handler
+        function resize() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            if (isGameRunning && player) {
-                player.x = Math.max(player.radius, Math.min(canvas.width - player.radius, player.x));
-                player.y = Math.max(player.radius, Math.min(canvas.height - player.radius, player.y));
+            if (window.innerWidth <= 768 || 'ontouchstart' in window) {
+                isMobile = true;
+                movementJoystick.style.display = 'block';
+                shootBtn.style.display = 'block';
+            } else {
+                isMobile = false;
+                movementJoystick.style.display = 'none';
+                shootBtn.style.display = 'none';
             }
         }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+        window.addEventListener('resize', resize);
+        resize();
+
+        const keys = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
+        const mouse = { x: canvas.width / 2, y: canvas.height / 2, isDown: false };
+        
+        let joystickVector = { x: 0, y: 0 };
+        let autoShootInterval;
+        let mobileShootInterval;
+
+        // Keyboard events
+        window.addEventListener('keydown', (e) => { if (keys.hasOwnProperty(e.key)) keys[e.key] = true; });
+        window.addEventListener('keyup', (e) => { if (keys.hasOwnProperty(e.key)) keys[e.key] = false; });
+
+        // Mouse events
+        canvas.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+        canvas.addEventListener('mousedown', () => { if (gameActive && !isMobile) mouse.isDown = true; });
+        canvas.addEventListener('mouseup', () => { mouse.isDown = false; });
+
+        // Mobile Joystick Logic
+        let joystickActive = false;
+        let joystickCenter = { x: 0, y: 0 };
+
+        movementJoystick.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            joystickActive = true;
+            const rect = movementJoystick.getBoundingClientRect();
+            joystickCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+            handleJoystickMove(e.touches[0]);
+        }, { passive: false });
+
+        movementJoystick.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (joystickActive) handleJoystickMove(e.touches[0]);
+        }, { passive: false });
+
+        movementJoystick.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            joystickActive = false;
+            resetJoystick();
+        }, { passive: false });
+
+        function handleJoystickMove(touch) {
+            const dx = touch.clientX - joystickCenter.x;
+            const dy = touch.clientY - joystickCenter.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const maxRadius = 40;
+
+            let knobX = dx;
+            let knobY = dy;
+
+            if (distance > maxRadius) {
+                const ratio = maxRadius / distance;
+                knobX = dx * ratio;
+                knobY = dy * ratio;
+            }
+
+            movementKnob.style.transform = `translate(calc(-50% + ${knobX}px), calc(-50% + ${knobY}px))`;
+            
+            joystickVector.x = dx / (distance || 1);
+            joystickVector.y = dy / (distance || 1);
+            
+            // Aiming follows movement on mobile if not manually aiming
+            if(isMobile) {
+                mouse.x = player.x + joystickVector.x * 100;
+                mouse.y = player.y + joystickVector.y * 100;
+            }
+        }
+
+        function resetJoystick() {
+            movementKnob.style.transform = `translate(-50%, -50%)`;
+            joystickVector = { x: 0, y: 0 };
+        }
+
+        shootBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (gameActive) {
+                mouse.isDown = true;
+                shootBtn.style.background = 'rgba(239, 68, 68, 0.8)';
+            }
+        }, { passive: false });
+
+        shootBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            mouse.isDown = false;
+            shootBtn.style.background = 'rgba(239, 68, 68, 0.5)';
+        }, { passive: false });
 
         class Player {
-            constructor(x, y) {
-                this.x = x;
-                this.y = y;
-                this.radius = 15;
-                this.color = '#3b82f6';
-                this.speed = 5;
+            constructor() {
+                this.x = canvas.width / 2;
+                this.y = canvas.height / 2;
+                this.radius = 20;
+                this.color = '#3b82f6'; // Blue
+                this.speed = 4;
                 this.maxHealth = 100;
                 this.health = this.maxHealth;
                 this.angle = 0;
-                this.dx = 0;
-                this.dy = 0;
+                this.name = customNames.player;
             }
 
             draw() {
                 ctx.save();
                 ctx.translate(this.x, this.y);
+                this.angle = Math.atan2(mouse.y - this.y, mouse.x - this.x);
                 ctx.rotate(this.angle);
 
                 // Body
                 ctx.beginPath();
-                ctx.arc(0, 0, this.radius, 0, Math.PI * 2, false);
+                ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
                 ctx.fillStyle = this.color;
                 ctx.fill();
                 ctx.lineWidth = 2;
@@ -302,72 +350,68 @@
 
                 // Gun
                 ctx.beginPath();
-                ctx.moveTo(0, -5);
-                ctx.lineTo(25, -5);
-                ctx.lineTo(25, 5);
-                ctx.lineTo(0, 5);
+                ctx.rect(10, -5, 25, 10);
                 ctx.fillStyle = '#9ca3af';
                 ctx.fill();
                 ctx.stroke();
                 
                 ctx.restore();
+
+                // Name tag
+                if (this.name) {
+                    ctx.fillStyle = '#93c5fd'; 
+                    ctx.font = 'bold 13px "Roboto Mono", monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(this.name, this.x, this.y - this.radius - 12);
+                }
             }
 
             update() {
-                let moveX = this.dx;
-                let moveY = this.dy;
+                // Keyboard movement
+                let dx = 0; let dy = 0;
+                if (keys.w || keys.ArrowUp) dy -= 1;
+                if (keys.s || keys.ArrowDown) dy += 1;
+                if (keys.a || keys.ArrowLeft) dx -= 1;
+                if (keys.d || keys.ArrowRight) dx += 1;
 
-                if (moveX !== 0 && moveY !== 0) {
-                    const length = Math.sqrt(moveX * moveX + moveY * moveY);
-                    moveX = (moveX / length) * this.speed;
-                    moveY = (moveY / length) * this.speed;
-                } else {
-                    moveX *= this.speed;
-                    moveY *= this.speed;
+                // Normalize keyboard diagonal
+                if (dx !== 0 && dy !== 0) {
+                    const length = Math.sqrt(dx * dx + dy * dy);
+                    dx /= length; dy /= length;
                 }
 
-                this.x += moveX;
-                this.y += moveY;
+                // Combine with joystick
+                const finalDx = (dx !== 0 ? dx : joystickVector.x) * this.speed;
+                const finalDy = (dy !== 0 ? dy : joystickVector.y) * this.speed;
 
+                this.x += finalDx;
+                this.y += finalDy;
+
+                // Bounds checking
                 this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
                 this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
 
-                if (!isMobile && mouse.x !== undefined && mouse.y !== undefined) {
-                    this.angle = Math.atan2(mouse.y - this.y, mouse.x - this.x);
-                }
-
                 this.draw();
-            }
-
-            takeDamage(amount) {
-                this.health -= amount;
-                updateHealthUI();
-                
-                this.color = '#ef4444';
-                setTimeout(() => { this.color = '#3b82f6'; }, 100);
-
-                if (this.health <= 0) {
-                    endGame();
-                }
             }
         }
 
-        class Projectile {
+        class Bullet {
             constructor(x, y, angle) {
                 this.x = x;
                 this.y = y;
                 this.radius = 4;
-                this.color = '#fbbf24';
-                this.speed = 15;
+                this.color = '#fbbf24'; // Yellow
+                this.speed = 12;
                 this.velocity = {
                     x: Math.cos(angle) * this.speed,
                     y: Math.sin(angle) * this.speed
                 };
+                this.damage = 1;
             }
 
             draw() {
                 ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
                 ctx.fillStyle = this.color;
                 ctx.fill();
             }
@@ -379,16 +423,95 @@
             }
         }
 
-        class Zombie {
-            constructor(x, y, type = 'normal') {
+        class SpitProjectile {
+            constructor(x, y, targetX, targetY) {
+                this.x = x;
+                this.y = y;
+                this.targetX = targetX;
+                this.targetY = targetY;
+                this.radius = 6;
+                this.color = '#a855f7'; // Purple
+                this.speed = 5;
+                const angle = Math.atan2(targetY - y, targetX - x);
+                this.velocity = {
+                    x: Math.cos(angle) * this.speed,
+                    y: Math.sin(angle) * this.speed
+                };
+                this.distanceTraveled = 0;
+                this.maxDistance = Math.hypot(targetX - x, targetY - y);
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 10;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+
+            update() {
+                this.x += this.velocity.x;
+                this.y += this.velocity.y;
+                this.distanceTraveled += this.speed;
+                this.draw();
+            }
+        }
+
+        class Puddle {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.radius = 5;
+                this.maxRadius = 35;
+                this.color = 'rgba(168, 85, 247, 0.4)'; // Transparent purple
+                this.lifeTime = 300; // frames
+                this.damage = 0.5; // per frame
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                
+                // Inner core
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius * 0.5, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(147, 51, 234, 0.6)';
+                ctx.fill();
+            }
+
+            update() {
+                if (this.radius < this.maxRadius) {
+                    this.radius += 0.5;
+                }
+                this.lifeTime--;
+                this.draw();
+            }
+        }
+
+        class Enemy {
+            constructor(x, y, type) {
                 this.x = x;
                 this.y = y;
                 this.type = type;
+                this.name = null;
+                this.lastShot = 0; // Para el spitter
                 
+                // Default Normal
+                this.radius = 15;
+                this.color = '#22c55e'; // Green
+                this.baseSpeed = 1.2 + (wave * 0.1);
+                this.health = 2 + Math.floor(wave / 2);
+                this.damage = 10;
+                this.scoreValue = 10;
+
                 if (type === 'fast') {
                     this.radius = 12;
-                    this.color = '#84cc16'; // Lighter green
-                    this.baseSpeed = 2.5 + (wave * 0.1);
+                    this.color = '#eab308'; // Yellow
+                    this.baseSpeed = 2.2 + (wave * 0.15);
                     this.health = 1;
                     this.damage = 5;
                     this.scoreValue = 15;
@@ -399,13 +522,15 @@
                     this.health = 5 + Math.floor(wave / 3);
                     this.damage = 25;
                     this.scoreValue = 30;
+                    this.name = customNames.tank;
                 } else if (type === 'exploder') {
                     this.radius = 18;
                     this.color = '#ef4444'; // Bright Red
                     this.baseSpeed = 1.6 + (wave * 0.08);
                     this.health = 2;
-                    this.damage = 0; // El daño se aplica por explosión
+                    this.damage = 0; // Daño se aplica en la explosión
                     this.scoreValue = 25;
+                    this.name = customNames.exploder;
                 } else if (type === 'spitter') {
                     this.radius = 16;
                     this.color = '#9333ea'; // Purple
@@ -414,71 +539,110 @@
                     this.damage = 10;
                     this.scoreValue = 20;
                     this.lastShot = Date.now() + Math.random() * 2000;
-                } else {
-                    this.radius = 15;
-                    this.color = '#22c55e'; // Standard green
-                    this.baseSpeed = 1.2 + (wave * 0.1);
-                    this.health = 2;
-                    this.damage = 10;
-                    this.scoreValue = 10;
+                    this.name = customNames.spitter;
                 }
-                
-                this.speed = this.baseSpeed;
-                this.angle = 0;
             }
 
             draw() {
                 ctx.save();
+                const angle = Math.atan2(player.y - this.y, player.x - this.x);
                 ctx.translate(this.x, this.y);
-                ctx.rotate(this.angle);
+                ctx.rotate(angle);
 
                 ctx.beginPath();
-                ctx.arc(0, 0, this.radius, 0, Math.PI * 2, false);
+                ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
                 ctx.fillStyle = this.color;
                 ctx.fill();
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = '#064e3b';
+                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = '#000';
                 ctx.stroke();
 
+                // Draw zombie arms
+                ctx.beginPath();
+                ctx.rect(this.radius - 5, -this.radius - 5, 12, 6);
+                ctx.rect(this.radius - 5, this.radius - 1, 12, 6);
                 ctx.fillStyle = this.color;
-                ctx.strokeStyle = '#064e3b';
+                ctx.fill();
+                ctx.stroke();
                 
-                ctx.beginPath();
-                ctx.arc(this.radius * 0.8, -this.radius * 0.6, this.radius * 0.4, 0, Math.PI*2);
-                ctx.fill(); ctx.stroke();
-                
-                ctx.beginPath();
-                ctx.arc(this.radius * 0.8, this.radius * 0.6, this.radius * 0.4, 0, Math.PI*2);
-                ctx.fill(); ctx.stroke();
+                ctx.restore();
 
+                // Pulse effect for exploder
+                if (this.type === 'exploder') {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius + Math.sin(frameCount * 0.2) * 3, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(239, 68, 68, 0.5)';
+                    ctx.stroke();
+                }
+
+                if (this.name) {
+                    let nameColor = '#fff';
+                    if (this.type === 'exploder') nameColor = '#fca5a5';
+                    if (this.type === 'spitter') nameColor = '#d8b4fe';
+                    if (this.type === 'tank') nameColor = '#86efac';
+
+                    ctx.fillStyle = nameColor;
+                    ctx.font = 'bold 11px "Roboto Mono", monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(this.name, this.x, this.y - this.radius - 12);
+                }
+            }
+
+            update() {
+                const dx = player.x - this.x;
+                const dy = player.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                let move = true;
+
+                // Spitter behavior
+                if (this.type === 'spitter') {
+                    if (distance < 250) {
+                        move = false; // Detenerse para disparar
+                    }
+                    if (Date.now() - this.lastShot > 3000 && distance < 400) {
+                        spitProjectiles.push(new SpitProjectile(this.x, this.y, player.x, player.y));
+                        this.lastShot = Date.now();
+                    }
+                }
+
+                if (move) {
+                    this.x += (dx / distance) * this.baseSpeed;
+                    this.y += (dy / distance) * this.baseSpeed;
+                }
+
+                this.draw();
+            }
+        }
+
+        class Explosion {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.radius = 5;
+                this.maxRadius = 80;
+                this.alpha = 1;
+                this.damage = 30; // Daño al jugador
+            }
+
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = this.alpha;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = '#ef4444';
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius * 0.7, 0, Math.PI * 2);
+                ctx.fillStyle = '#fbbf24';
+                ctx.fill();
                 ctx.restore();
             }
 
             update() {
-                this.angle = Math.atan2(player.y - this.y, player.x - this.x);
-                
-                // Comportamientos especiales
-                if (this.type === 'exploder') {
-                    const dist = Math.hypot(player.x - this.x, player.y - this.y);
-                    if (dist < 60) {
-                        this.health = 0; // Detonar
-                    }
-                } else if (this.type === 'spitter') {
-                    const dist = Math.hypot(player.x - this.x, player.y - this.y);
-                    if (dist < 300) {
-                        this.speed = this.baseSpeed * 0.1; 
-                        if (Date.now() - this.lastShot > 3000) {
-                            spitProjectiles.push(new SpitProjectile(this.x, this.y, player.x, player.y));
-                            this.lastShot = Date.now();
-                        }
-                    } else {
-                        this.speed = this.baseSpeed;
-                    }
-                }
-
-                this.x += Math.cos(this.angle) * this.speed;
-                this.y += Math.sin(this.angle) * this.speed;
-
+                this.radius += 5;
+                this.alpha -= 0.05;
                 this.draw();
             }
         }
@@ -489,27 +653,21 @@
                 this.y = y;
                 this.radius = Math.random() * 3 + 1;
                 this.color = color;
-                this.velocity = {
-                    x: (Math.random() - 0.5) * (Math.random() * 6),
-                    y: (Math.random() - 0.5) * (Math.random() * 6)
-                };
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 4 + 1;
+                this.velocity = { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed };
                 this.alpha = 1;
-                this.friction = 0.98;
             }
-
             draw() {
                 ctx.save();
                 ctx.globalAlpha = this.alpha;
                 ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
                 ctx.fillStyle = this.color;
                 ctx.fill();
                 ctx.restore();
             }
-
             update() {
-                this.velocity.x *= this.friction;
-                this.velocity.y *= this.friction;
                 this.x += this.velocity.x;
                 this.y += this.velocity.y;
                 this.alpha -= 0.02;
@@ -517,285 +675,50 @@
             }
         }
 
-        class Explosion {
-            constructor(x, y, radius) {
-                this.x = x;
-                this.y = y;
-                this.radius = radius;
-                this.currentRadius = 0;
-                this.alpha = 0.8;
-            }
-            update() {
-                this.currentRadius += (this.radius - this.currentRadius) * 0.2;
-                this.alpha -= 0.03;
-                this.draw();
-            }
-            draw() {
-                ctx.save();
-                ctx.globalAlpha = Math.max(0, this.alpha);
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.currentRadius, 0, Math.PI * 2);
-                ctx.fillStyle = '#ef4444'; // Bright Red
-                ctx.fill();
-                ctx.restore();
-            }
-        }
-
-        class SpitProjectile {
-            constructor(startX, startY, targetX, targetY) {
-                this.x = startX;
-                this.y = startY;
-                this.speed = 5;
-                this.radius = 6;
-                this.color = '#9333ea'; // Purple
-                
-                const angle = Math.atan2(targetY - startY, targetX - startX);
-                this.velocity = {
-                    x: Math.cos(angle) * this.speed,
-                    y: Math.sin(angle) * this.speed
-                };
-                
-                this.distanceTraveled = 0;
-                this.totalDistance = Math.hypot(targetX - startX, targetY - startY);
-            }
-            
-            update() {
-                this.x += this.velocity.x;
-                this.y += this.velocity.y;
-                this.distanceTraveled += this.speed;
-                this.draw();
-            }
-            
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.fill();
-            }
-            
-            hasLanded() {
-                return this.distanceTraveled >= this.totalDistance;
-            }
-        }
-
-        class Puddle {
-            constructor(x, y) {
-                this.x = x;
-                this.y = y;
-                this.radius = 45;
-                this.createdAt = Date.now();
-                this.lifespan = 6000; // 6 seconds
-            }
-            
-            isExpired() {
-                return Date.now() - this.createdAt > this.lifespan;
-            }
-            
-            draw() {
-                ctx.save();
-                const age = Date.now() - this.createdAt;
-                let alpha = 0.5;
-                if (age > this.lifespan - 1000) {
-                    alpha = 0.5 * (this.lifespan - age) / 1000;
-                }
-                ctx.globalAlpha = Math.max(0, alpha);
-                ctx.beginPath();
-                // Draw splat shape approximation
-                ctx.ellipse(this.x, this.y, this.radius, this.radius * 0.7, 0, 0, Math.PI * 2);
-                ctx.fillStyle = '#9333ea';
-                ctx.fill();
-                ctx.restore();
-            }
-        }
-
         let player;
-        let projectiles = [];
-        let zombies = [];
+        let bullets = [];
+        let enemies = [];
         let particles = [];
         let explosions = [];
-        let puddles = [];
         let spitProjectiles = [];
-        
-        const keys = {
-            w: false, a: false, s: false, d: false,
-            ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false
-        };
-        const mouse = { x: undefined, y: undefined, isDown: false };
-        
-        let lastShotTime = 0;
-        const fireRate = 150;
-        let autoShootInterval;
+        let puddles = [];
+        let lastFired = 0;
 
-        window.addEventListener('keydown', (e) => {
-            if (keys.hasOwnProperty(e.key)) {
-                keys[e.key] = true;
-                updatePlayerMovement();
-            }
-        });
+        function spawnEnemy() {
+            if (enemies.length >= 50) return; // Cap max enemies
 
-        window.addEventListener('keyup', (e) => {
-            if (keys.hasOwnProperty(e.key)) {
-                keys[e.key] = false;
-                updatePlayerMovement();
-            }
-        });
-
-        window.addEventListener('mousemove', (e) => {
-            mouse.x = e.clientX;
-            mouse.y = e.clientY;
-        });
-
-        window.addEventListener('mousedown', (e) => {
-            if (!isGameRunning || e.target.closest('.overlay')) return;
-            mouse.isDown = true;
-            shoot();
-            autoShootInterval = setInterval(shoot, fireRate);
-        });
-
-        window.addEventListener('mouseup', () => {
-            mouse.isDown = false;
-            clearInterval(autoShootInterval);
-        });
-        
-        window.addEventListener('touchstart', function detectTouch() {
-            isMobile = true;
-            mobileControls.style.display = 'flex';
-            window.removeEventListener('touchstart', detectTouch);
-        });
-
-        let joystickCenter = { x: 0, y: 0 };
-        let joystickActive = false;
-        let joystickMaxDist = 45; 
-
-        movementJoystick.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            const rect = movementJoystick.getBoundingClientRect();
-            joystickCenter = {
-                x: rect.left + rect.width / 2,
-                y: rect.top + rect.height / 2
-            };
-            joystickActive = true;
-            handleJoystickMove(e.touches[0]);
-        });
-
-        movementJoystick.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            if (joystickActive) {
-                handleJoystickMove(e.touches[0]);
-            }
-        });
-
-        const resetJoystick = () => {
-            joystickActive = false;
-            movementKnob.style.transform = `translate(-50%, -50%)`;
-            if (player) {
-                player.dx = 0;
-                player.dy = 0;
-            }
-        };
-
-        movementJoystick.addEventListener('touchend', resetJoystick);
-        movementJoystick.addEventListener('touchcancel', resetJoystick);
-
-        function handleJoystickMove(touch) {
-            const touchX = touch.clientX;
-            const touchY = touch.clientY;
-            
-            let dx = touchX - joystickCenter.x;
-            let dy = touchY - joystickCenter.y;
-            let distance = Math.sqrt(dx * dx + dy * dy);
-            
-            if (distance > joystickMaxDist) {
-                dx = (dx / distance) * joystickMaxDist;
-                dy = (dy / distance) * joystickMaxDist;
-            }
-            
-            movementKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-            
-            if (player) {
-                const normalizedX = dx / joystickMaxDist;
-                const normalizedY = dy / joystickMaxDist;
-                
-                player.dx = normalizedX;
-                player.dy = normalizedY;
-                
-                if (!mouse.isDown) {
-                     player.angle = Math.atan2(normalizedY, normalizedX);
-                }
-            }
-        }
-
-        let mobileShootInterval;
-        shootBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            if (!isGameRunning) return;
-            mouse.isDown = true;
-            shoot();
-            mobileShootInterval = setInterval(shoot, fireRate);
-        });
-
-        const stopMobileShoot = (e) => {
-            if(e) e.preventDefault();
-            mouse.isDown = false;
-            clearInterval(mobileShootInterval);
-        };
-        shootBtn.addEventListener('touchend', stopMobileShoot);
-        shootBtn.addEventListener('touchcancel', stopMobileShoot);
-
-        function updatePlayerMovement() {
-            if (!player || isMobile) return;
-
-            player.dx = 0;
-            player.dy = 0;
-
-            if (keys.w || keys.ArrowUp) player.dy = -1;
-            if (keys.s || keys.ArrowDown) player.dy = 1;
-            if (keys.a || keys.ArrowLeft) player.dx = -1;
-            if (keys.d || keys.ArrowRight) player.dx = 1;
-        }
-
-        function shoot() {
-            if (!isGameRunning || !player) return;
-            
-            const now = Date.now();
-            if (now - lastShotTime < fireRate) return;
-            
-            const muzzleDist = 25;
-            const muzzleX = player.x + Math.cos(player.angle) * muzzleDist;
-            const muzzleY = player.y + Math.sin(player.angle) * muzzleDist;
-
-            projectiles.push(new Projectile(muzzleX, muzzleY, player.angle));
-            lastShotTime = now;
-            
-            player.x -= Math.cos(player.angle) * 2;
-            player.y -= Math.sin(player.angle) * 2;
-        }
-
-        function spawnZombie() {
+            const radius = 30;
             let x, y;
-            const spawnMargin = 50;
-            
             if (Math.random() < 0.5) {
-                x = Math.random() * canvas.width;
-                y = Math.random() < 0.5 ? -spawnMargin : canvas.height + spawnMargin;
-            } else {
-                x = Math.random() < 0.5 ? -spawnMargin : canvas.width + spawnMargin;
+                x = Math.random() < 0.5 ? 0 - radius : canvas.width + radius;
                 y = Math.random() * canvas.height;
+            } else {
+                x = Math.random() * canvas.width;
+                y = Math.random() < 0.5 ? 0 - radius : canvas.height + radius;
             }
 
             let type = 'normal';
             const rand = Math.random();
-            if (wave > 4 && rand > 0.85) {
-                type = 'spitter';
-            } else if (wave > 3 && rand > 0.70) {
-                type = 'exploder';
-            } else if (wave > 4 && rand > 0.55) {
-                type = 'tank';
-            } else if (wave > 2 && rand > 0.35) {
-                type = 'fast';
+            
+            // Nuevas probabilidades ajustadas
+            if (wave >= 4) {
+                // Caos total: 40% Exploder, 40% Spitter, 20% Tanque
+                if (rand < 0.40) type = 'exploder';
+                else if (rand < 0.80) type = 'spitter';
+                else type = 'tank';
+            } else if (wave === 3) {
+                // Transición agresiva
+                if (rand < 0.25) type = 'exploder';
+                else if (rand < 0.50) type = 'spitter';
+                else if (rand < 0.80) type = 'tank';
+                else type = 'fast';
+            } else if (wave === 2) {
+                if (rand < 0.30) type = 'tank';
+                else if (rand < 0.60) type = 'fast';
+                else type = 'normal';
             }
 
-            zombies.push(new Zombie(x, y, type));
+            enemies.push(new Enemy(x, y, type));
         }
 
         function createParticles(x, y, color, amount) {
@@ -804,220 +727,206 @@
             }
         }
 
-        function createExplosion(x, y) {
-            const radius = 120;
-            const maxDamage = 40;
-            explosions.push(new Explosion(x, y, radius));
+        function triggerExplosion(x, y) {
+            explosions.push(new Explosion(x, y));
             
-            const distP = Math.hypot(player.x - x, player.y - y);
-            if (distP < radius + player.radius) {
-                const damage = maxDamage * (1 - (distP / radius));
-                player.takeDamage(damage);
+            // Check damage to player
+            const distToPlayer = Math.hypot(player.x - x, player.y - y);
+            if (distToPlayer < 80) { // Radio de explosión
+                player.health -= 30;
+                updateHealthUI();
             }
-            
-            zombies.forEach(z => {
-                const distZ = Math.hypot(z.x - x, z.y - y);
-                if (distZ < radius + z.radius) {
-                    z.health -= 50; 
+
+            // Check damage to other enemies
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const enemy = enemies[i];
+                const distToEnemy = Math.hypot(enemy.x - x, enemy.y - y);
+                if (distToEnemy < 100 && enemy.type !== 'exploder') { // No encadenar explosiones infinitas
+                    enemy.health -= 10;
+                    if (enemy.health <= 0) {
+                        createParticles(enemy.x, enemy.y, enemy.color, 8);
+                        score += enemy.scoreValue;
+                        enemies.splice(i, 1);
+                        updateUI();
+                    }
                 }
-            });
+            }
         }
 
         function updateUI() {
-            scoreDisplay.innerText = `Score: ${score}`;
-            waveDisplay.innerText = `Wave: ${wave}`;
+            scoreDisplay.innerText = score;
+            waveDisplay.innerText = wave;
         }
 
         function updateHealthUI() {
-            if (!player) return;
             const percentage = Math.max(0, (player.health / player.maxHealth) * 100);
             healthBarFill.style.width = `${percentage}%`;
-            
-            if (percentage > 50) {
-                healthBarFill.style.backgroundColor = '#22c55e';
-            } else if (percentage > 20) {
-                healthBarFill.style.backgroundColor = '#eab308';
+            if (percentage < 30) {
+                healthBarFill.classList.remove('bg-red-500');
+                healthBarFill.classList.add('bg-red-700', 'animate-pulse');
             } else {
-                healthBarFill.style.backgroundColor = '#ef4444';
+                healthBarFill.classList.remove('bg-red-700', 'animate-pulse');
+                healthBarFill.classList.add('bg-red-500');
             }
         }
 
         function animate() {
-            if (!isGameRunning) return;
-            
+            if (!gameActive) return;
             animationId = requestAnimationFrame(animate);
+            frameCount++;
 
-            ctx.fillStyle = 'rgba(26, 26, 26, 0.4)';
+            ctx.fillStyle = 'rgba(17, 24, 39, 0.4)'; // Slight trail effect
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-            ctx.lineWidth = 1;
-            const gridSize = 50;
-            ctx.beginPath();
-            for(let x = 0; x <= canvas.width; x += gridSize) {
-                ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
-            }
-            for(let y = 0; y <= canvas.height; y += gridSize) {
-                ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
-            }
-            ctx.stroke();
-
-            // Handle Puddles
-            let playerInPuddle = false;
-            for (let i = puddles.length - 1; i >= 0; i--) {
-                const puddle = puddles[i];
-                if (puddle.isExpired()) {
-                    puddles.splice(i, 1);
-                } else {
-                    puddle.draw();
-                    if (Math.hypot(player.x - puddle.x, player.y - puddle.y) < puddle.radius + player.radius) {
-                        playerInPuddle = true;
-                    }
-                }
-            }
-
-            if (playerInPuddle && frameCount % 15 === 0) {
-                player.takeDamage(3);
+            // Handle continuous shooting
+            if (mouse.isDown && Date.now() - lastFired > 150) {
+                const angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
+                
+                // Disparo desde la punta del arma (aproximado)
+                const gunX = player.x + Math.cos(angle) * 30;
+                const gunY = player.y + Math.sin(angle) * 30;
+                
+                bullets.push(new Bullet(gunX, gunY, angle));
+                lastFired = Date.now();
             }
 
             player.update();
 
-            // Handle Explosions
-            for (let i = explosions.length - 1; i >= 0; i--) {
-                const exp = explosions[i];
-                if (exp.alpha <= 0) {
-                    explosions.splice(i, 1);
-                } else {
-                    exp.update();
+            // Puddles (Acid)
+            for (let i = puddles.length - 1; i >= 0; i--) {
+                const puddle = puddles[i];
+                puddle.update();
+                
+                // Daño al jugador si pisa
+                const distToPlayer = Math.hypot(player.x - puddle.x, player.y - puddle.y);
+                if (distToPlayer < puddle.radius + player.radius) {
+                    player.health -= puddle.damage;
+                    updateHealthUI();
                 }
+
+                if (puddle.lifeTime <= 0) puddles.splice(i, 1);
             }
 
-            // Handle Spit Projectiles
+            // Explosions
+            for (let i = explosions.length - 1; i >= 0; i--) {
+                const exp = explosions[i];
+                exp.update();
+                if (exp.alpha <= 0) explosions.splice(i, 1);
+            }
+
+            // Spit Projectiles
             for (let i = spitProjectiles.length - 1; i >= 0; i--) {
-                const spit = spitProjectiles[i];
-                spit.update();
-                if (spit.hasLanded()) {
-                    puddles.push(new Puddle(spit.x, spit.y));
+                const p = spitProjectiles[i];
+                p.update();
+                if (p.distanceTraveled >= p.maxDistance || 
+                    p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) {
+                    puddles.push(new Puddle(p.x, p.y));
                     spitProjectiles.splice(i, 1);
                 }
             }
 
-            // Handle Particles
+            // Particles
             for (let i = particles.length - 1; i >= 0; i--) {
-                const particle = particles[i];
-                if (particle.alpha <= 0) {
-                    particles.splice(i, 1);
-                } else {
-                    particle.update();
+                const p = particles[i];
+                p.update();
+                if (p.alpha <= 0) particles.splice(i, 1);
+            }
+
+            // Bullets
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                const bullet = bullets[i];
+                bullet.update();
+
+                // Remove off-screen bullets
+                if (bullet.x < 0 || bullet.x > canvas.width || bullet.y < 0 || bullet.y > canvas.height) {
+                    bullets.splice(i, 1);
+                    continue;
+                }
+
+                // Enemy collision
+                for (let j = enemies.length - 1; j >= 0; j--) {
+                    const enemy = enemies[j];
+                    const dist = Math.hypot(bullet.x - enemy.x, bullet.y - enemy.y);
+
+                    if (dist - enemy.radius - bullet.radius < 0) {
+                        createParticles(bullet.x, bullet.y, enemy.color, 3);
+                        enemy.health -= bullet.damage;
+                        bullets.splice(i, 1); // Remove bullet
+
+                        if (enemy.health <= 0) {
+                            if (enemy.type === 'exploder') {
+                                triggerExplosion(enemy.x, enemy.y);
+                            }
+                            createParticles(enemy.x, enemy.y, enemy.color, 15);
+                            score += enemy.scoreValue;
+                            enemies.splice(j, 1);
+                            updateUI();
+                        }
+                        break; // Bullet already hit, stop checking enemies
+                    }
                 }
             }
 
-            // Handle Projectiles
-            for (let i = projectiles.length - 1; i >= 0; i--) {
-                const projectile = projectiles[i];
-                projectile.update();
+            // Enemies
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                const enemy = enemies[i];
+                enemy.update();
 
-                if (projectile.x < 0 || projectile.x > canvas.width || 
-                    projectile.y < 0 || projectile.y > canvas.height) {
-                    projectiles.splice(i, 1);
+                // Player collision
+                const dist = Math.hypot(player.x - enemy.x, player.y - enemy.y);
+                if (dist - enemy.radius - player.radius < 0) {
+                    if (enemy.type === 'exploder') {
+                        triggerExplosion(enemy.x, enemy.y);
+                        enemies.splice(i, 1); // El exploder muere al tocar al jugador
+                    } else {
+                        player.health -= enemy.damage * 0.1; // Continuous damage on touch
+                    }
+                    updateHealthUI();
                 }
             }
 
-            const spawnRate = Math.max(20, 100 - (wave * 5)); 
-            if (frameCount % Math.floor(spawnRate) === 0) {
-                spawnZombie();
+            // Wave logic
+            if (frameCount % Math.max(30, 100 - (wave * 5)) === 0) {
+                spawnEnemy();
             }
 
-            const nextWaveScore = wave * wave * 500;
-            if (score >= nextWaveScore) {
+            if (score > wave * 300) { // Subir de oleada
                 wave++;
+                player.health = Math.min(player.maxHealth, player.health + 20); // Heal per wave
                 updateUI();
-                player.health = Math.min(player.maxHealth, player.health + 20);
                 updateHealthUI();
                 
-                const wText = document.createElement('div');
-                wText.textContent = `WAVE ${wave}`;
-                wText.className = 'absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-6xl text-yellow-400 font-bold opacity-0 transition-opacity duration-1000 pointer-events-none z-10';
-                wText.style.fontFamily = "'Creepster', cursive";
-                document.body.appendChild(wText);
-                
-                setTimeout(() => wText.style.opacity = '1', 50);
-                setTimeout(() => {
-                    wText.style.opacity = '0';
-                    setTimeout(() => wText.remove(), 1000);
-                }, 2000);
+                // Wave announce effect (Simple text)
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.font = 'bold 40px "Roboto Mono"';
+                ctx.textAlign = 'center';
+                ctx.fillText(`OLEADA ${wave}`, canvas.width/2, 100);
             }
 
-            // Handle Zombies
-            for (let i = zombies.length - 1; i >= 0; i--) {
-                const zombie = zombies[i];
-                zombie.update();
-
-                if (zombie.health <= 0) {
-                    if (zombie.type === 'exploder') {
-                        createExplosion(zombie.x, zombie.y);
-                    }
-                    createParticles(zombie.x, zombie.y, zombie.color, 15);
-                    score += zombie.scoreValue;
-                    updateUI();
-                    zombies.splice(i, 1);
-                    continue; 
-                }
-
-                const distPlayer = Math.hypot(player.x - zombie.x, player.y - zombie.y);
-                if (distPlayer - zombie.radius - player.radius < 0) {
-                    player.takeDamage(zombie.damage);
-                    createParticles(player.x, player.y, '#ef4444', 10);
-                    
-                    player.x -= Math.cos(zombie.angle) * 10;
-                    player.y -= Math.sin(zombie.angle) * 10;
-                    
-                    if (zombie.type === 'exploder') {
-                        createExplosion(zombie.x, zombie.y);
-                    }
-                    
-                    zombies.splice(i, 1);
-                    continue; 
-                }
-
-                for (let j = projectiles.length - 1; j >= 0; j--) {
-                    const projectile = projectiles[j];
-                    const distProj = Math.hypot(projectile.x - zombie.x, projectile.y - zombie.y);
-
-                    if (distProj - zombie.radius - projectile.radius < 0) {
-                        createParticles(projectile.x, projectile.y, zombie.color, 5); 
-                        projectiles.splice(j, 1); 
-                        zombie.health -= 1;
-
-                        if (zombie.health > 0) {
-                            zombie.x -= Math.cos(zombie.angle) * 5;
-                            zombie.y -= Math.sin(zombie.angle) * 5;
-                        }
-                        break; 
-                    }
-                }
+            // Game Over
+            if (player.health <= 0) {
+                gameActive = false;
+                cancelAnimationFrame(animationId);
+                showGameOver();
             }
-
-            frameCount++;
         }
 
         function initGame() {
-            player = new Player(canvas.width / 2, canvas.height / 2);
-            projectiles = [];
-            zombies = [];
+            player = new Player();
+            bullets = [];
+            enemies = [];
             particles = [];
             explosions = [];
-            puddles = [];
             spitProjectiles = [];
+            puddles = [];
             
             score = 0;
             wave = 1;
             frameCount = 0;
             
-            for(let key in keys) keys[key] = false;
+            // Reset keys and joystick
+            for (let key in keys) keys[key] = false;
             resetJoystick();
-            clearInterval(autoShootInterval);
-            clearInterval(mobileShootInterval);
             mouse.isDown = false;
 
             updateUI();
@@ -1025,29 +934,34 @@
         }
 
         function startGame() {
+            // Obtener nombres personalizados
+            customNames.player = inputPlayerName.value.trim().toUpperCase() || 'HÉROE';
+            customNames.exploder = inputExploderName.value.trim().toUpperCase() || 'URIEL';
+            customNames.spitter = inputSpitterName.value.trim().toUpperCase() || 'RAMIRO';
+            customNames.tank = inputTankName.value.trim().toUpperCase() || 'GOLIAT';
+
             startScreen.classList.add('hidden');
             gameOverScreen.classList.add('hidden');
             
             initGame();
-            
-            isGameRunning = true;
+            gameActive = true;
             animate();
         }
 
-        function endGame() {
-            isGameRunning = false;
-            cancelAnimationFrame(animationId);
-            
-            clearInterval(autoShootInterval);
-            clearInterval(mobileShootInterval);
-            
-            finalScore.innerText = `Puntuación Final: ${score}`;
-            finalWave.innerText = `Oleada Alcanzada: ${wave}`;
+        function showGameOver() {
+            finalScore.innerText = score;
+            finalWave.innerText = wave;
             gameOverScreen.classList.remove('hidden');
+            
+            // Reset mobile states
+            mouse.isDown = false;
+            if(isMobile){
+                shootBtn.style.background = 'rgba(239, 68, 68, 0.5)';
+            }
         }
 
-        startBtn.addEventListener('click', startGame);
-        restartBtn.addEventListener('click', startGame);
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('restartBtn').addEventListener('click', startGame);
 
     </script>
 </body>
