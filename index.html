@@ -3,699 +3,193 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Zombie Survival</title>
+    <title>Supervivencia Zombie</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@700&display=swap');
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #2d7a31; user-select: none; }
+        canvas { display: block; width: 100%; height: 100%; }
+        .game-font { font-family: 'Roboto Mono', monospace; }
         
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            background-color: #111827; /* Tailwind gray-900 */
-            font-family: 'Roboto Mono', monospace;
-            touch-action: none; /* Prevent scroll on mobile */
-        }
-        
-        canvas {
-            display: block;
-            width: 100%;
-            height: 100%;
-        }
-
-        .overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background-color: rgba(17, 24, 39, 0.85);
-            z-index: 10;
-            color: white;
-            pointer-events: none; /* Let clicks pass through unless on buttons */
-        }
-
-        .overlay-content {
-            pointer-events: auto;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: white;
-            background: linear-gradient(135deg, #ef4444, #b91c1c);
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            text-transform: uppercase;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            transition: transform 0.1s, box-shadow 0.1s;
-            pointer-events: auto;
-        }
-
-        .btn:active {
-            transform: scale(0.95);
-        }
-
-        .ui-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 5;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        /* Mobile Controls */
-        .mobile-joystick {
-            position: absolute;
-            bottom: 30px;
-            left: 30px;
-            width: 120px;
-            height: 120px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
+        #joystick-zone {
+            position: absolute; bottom: 20px; left: 20px; width: 120px; height: 120px;
+            background: rgba(255, 255, 255, 0.1); border-radius: 50%; display: none; touch-action: none;
             border: 2px solid rgba(255, 255, 255, 0.3);
-            display: none;
-            pointer-events: auto;
         }
+        #joystick-knob {
+            position: absolute; top: 50%; left: 50%; width: 50px; height: 50px;
+            background: rgba(255, 255, 255, 0.5); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none;
+        }
+        #shoot-btn {
+            position: absolute; bottom: 30px; right: 30px; width: 80px; height: 80px;
+            background: rgba(239, 68, 68, 0.6); border-radius: 50%; display: none;
+            border: 2px solid rgba(255, 255, 255, 0.5); touch-action: none;
+        }
+        #shoot-btn:active { background: rgba(239, 68, 68, 0.9); transform: scale(0.95); }
+        
+        #decoy-btn {
+            position: absolute; bottom: 130px; right: 40px; width: 60px; height: 60px;
+            background: rgba(234, 179, 8, 0.6); border-radius: 50%; display: none;
+            border: 2px solid rgba(255, 255, 255, 0.5); touch-action: none;
+        }
+        #decoy-btn:active { background: rgba(234, 179, 8, 0.9); transform: scale(0.95); }
 
-        .mobile-joystick-knob {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 50px;
-            height: 50px;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .mobile-shoot {
-            position: absolute;
-            bottom: 40px;
-            right: 40px;
-            width: 80px;
-            height: 80px;
-            background: rgba(239, 68, 68, 0.5);
-            border-radius: 50%;
-            border: 2px solid rgba(239, 68, 68, 0.8);
-            display: none;
-            pointer-events: auto;
-        }
+        .coin-icon { color: #fbbf24; text-shadow: 0 0 5px #d97706; }
     </style>
 </head>
-<body>
-    <canvas id="gameCanvas"></canvas>
+<body class="text-white game-font">
 
-    <div class="ui-layer flex justify-between items-start">
-        <div class="bg-gray-800 bg-opacity-70 p-4 rounded-lg shadow-lg border border-gray-700">
-            <div class="text-xl font-bold text-white mb-2">Puntuación: <span id="scoreDisplay" class="text-yellow-400">0</span></div>
-            <div class="text-lg font-bold text-gray-300">Oleada: <span id="waveDisplay" class="text-blue-400">1</span></div>
-        </div>
+    <!-- Menú de Inicio -->
+    <div id="startScreen" class="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-90 z-50 transition-opacity duration-300 overflow-y-auto py-8">
+        <h1 class="text-4xl md:text-6xl text-green-500 font-bold mb-6 text-center tracking-tighter drop-shadow-[0_0_15px_rgba(34,197,94,0.8)]">ZOMBIE<br>SURVIVAL</h1>
         
-        <div class="bg-gray-800 bg-opacity-70 p-3 rounded-lg shadow-lg border border-gray-700 w-48">
-            <div class="text-sm font-bold text-white mb-1">Salud</div>
-            <div class="w-full h-4 bg-gray-900 rounded-full overflow-hidden">
-                <div id="health-bar-fill" class="h-full bg-red-500 transition-all duration-200" style="width: 100%;"></div>
-            </div>
-        </div>
-        
-        <button id="pauseBtnUI" class="ml-4 bg-gray-800 bg-opacity-70 rounded-lg shadow-lg border border-gray-700 text-white font-bold hover:bg-gray-700 pointer-events-auto flex items-center justify-center w-12 h-12 transition-transform active:scale-95">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"/></svg>
-        </button>
-    </div>
-
-    <!-- Pause Screen -->
-    <div id="pauseScreen" class="overlay hidden" style="z-index: 30; background-color: rgba(17, 24, 39, 0.9);">
-        <h2 class="text-6xl font-bold text-white mb-8 tracking-widest">PAUSA</h2>
-        <button id="resumeBtn" class="btn mb-4 w-56">Reanudar</button>
-        <button id="quitBtn" class="btn w-56" style="background: linear-gradient(135deg, #4b5563, #374151);">Salir al Menú</button>
-    </div>
-
-    <!-- Start Screen -->
-    <div id="startScreen" class="overlay">
-        <h1 class="text-5xl md:text-7xl font-bold text-white mb-4 text-center tracking-tighter" style="text-shadow: 0 0 10px rgba(239,68,68,0.8);">ZOMBIE<br>SURVIVAL</h1>
-        <p class="mb-6 text-gray-300 text-center max-w-md">Sobrevive a las hordas. Muévete con WASD/Flechas. Dispara con el Ratón.</p>
-        
-        <div id="customization-panel" class="mb-6 flex flex-col gap-3 w-full max-w-sm bg-gray-800 p-5 rounded-lg border border-gray-600 shadow-xl pointer-events-auto">
-            <h3 class="text-white text-xl font-bold mb-1 text-center border-b border-gray-600 pb-2">Personalizar Nombres</h3>
+        <div class="bg-gray-800 p-5 rounded-xl border border-gray-700 mb-6 max-w-sm w-full space-y-3 shadow-2xl">
+            <h2 class="text-lg text-center text-gray-300 border-b border-gray-600 pb-2 mb-3">Personaliza los Nombres</h2>
             
             <div class="flex justify-between items-center">
-                <label class="text-blue-400 font-bold">Tú (Jugador):</label>
-                <input type="text" id="inputPlayerName" value="JUGADOR" maxlength="12" class="p-1 text-sm rounded bg-gray-700 text-white border border-blue-500 w-36 text-center uppercase focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <label class="text-blue-400 text-sm">Héroe:</label>
+                <input type="text" id="namePlayer" value="Jugador" class="bg-gray-700 text-white px-2 py-1 rounded w-32 outline-none focus:ring-2 focus:ring-blue-500 text-sm text-right">
             </div>
             <div class="flex justify-between items-center">
-                <label class="text-red-500 font-bold">Exploder:</label>
-                <input type="text" id="inputExploderName" value="EXPLODER" maxlength="12" class="p-1 text-sm rounded bg-gray-700 text-white border border-red-500 w-36 text-center uppercase focus:outline-none focus:ring-2 focus:ring-red-500">
+                <label class="text-orange-400 text-sm">Rápido:</label>
+                <input type="text" id="nameRunner" value="Runner" class="bg-gray-700 text-white px-2 py-1 rounded w-32 outline-none focus:ring-2 focus:ring-orange-500 text-sm text-right">
             </div>
             <div class="flex justify-between items-center">
-                <label class="text-purple-400 font-bold">Spitter:</label>
-                <input type="text" id="inputSpitterName" value="SPITTER" maxlength="12" class="p-1 text-sm rounded bg-gray-700 text-white border border-purple-500 w-36 text-center uppercase focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <label class="text-red-400 text-sm">Explosivo:</label>
+                <input type="text" id="nameExploder" value="Exploder" class="bg-gray-700 text-white px-2 py-1 rounded w-32 outline-none focus:ring-2 focus:ring-red-500 text-sm text-right">
             </div>
             <div class="flex justify-between items-center">
-                <label class="text-green-500 font-bold">Tanque:</label>
-                <input type="text" id="inputTankName" value="TANQUE" maxlength="12" class="p-1 text-sm rounded bg-gray-700 text-white border border-green-500 w-36 text-center uppercase focus:outline-none focus:ring-2 focus:ring-green-500">
+                <label class="text-purple-400 text-sm">Tóxico:</label>
+                <input type="text" id="nameSpitter" value="Spitter" class="bg-gray-700 text-white px-2 py-1 rounded w-32 outline-none focus:ring-2 focus:ring-purple-500 text-sm text-right">
+            </div>
+            <div class="flex justify-between items-center">
+                <label class="text-green-500 text-sm">Gigante:</label>
+                <input type="text" id="nameTank" value="Tanque" class="bg-gray-700 text-white px-2 py-1 rounded w-32 outline-none focus:ring-2 focus:ring-green-500 text-sm text-right">
             </div>
         </div>
 
-        <button id="startBtn" class="btn">Empezar a Jugar</button>
+        <p class="text-gray-400 mb-6 text-center px-4 max-w-md text-sm">WASD para moverte. Ratón para disparar. 'E' para lanzar señuelos.</p>
+        <button id="startBtn" class="px-8 py-3 bg-green-600 hover:bg-green-500 text-white text-xl font-bold rounded shadow-lg shadow-green-500/50 transition-all transform hover:scale-105">INICIAR JUEGO</button>
     </div>
 
-    <!-- Game Over Screen -->
-    <div id="gameOverScreen" class="overlay hidden">
-        <h1 class="text-6xl font-bold text-red-600 mb-2" style="text-shadow: 0 0 15px rgba(220,38,38,0.8);">HAS MUERTO</h1>
-        <div class="text-2xl text-white mb-6">
-            Puntuación Final: <span id="finalScore" class="text-yellow-400 font-bold">0</span><br>
-            Sobreviviste hasta la Oleada: <span id="finalWave" class="text-blue-400 font-bold">1</span>
+    <!-- Menú de la Tienda -->
+    <div id="shopScreen" class="absolute inset-0 flex flex-col items-center justify-center bg-blue-900 bg-opacity-90 z-50 hidden backdrop-blur-sm">
+        <h2 class="text-5xl text-yellow-400 font-bold mb-2 tracking-widest drop-shadow-md">TIENDA</h2>
+        <p class="text-xl text-white mb-8">Tienes: <span id="shopCoinsDisplay" class="font-bold text-yellow-400">0</span> Monedas</p>
+        
+        <div class="space-y-4 flex flex-col w-80 max-w-[90%]">
+            <div class="bg-gray-800 border-2 border-gray-600 p-4 rounded-lg flex flex-col items-center">
+                <h3 class="text-yellow-400 font-bold text-lg mb-1">Señuelo Explosivo</h3>
+                <p class="text-sm text-gray-300 text-center mb-3">Atrae a los zombies y luego explota.</p>
+                <button id="buyDecoyBtn" class="w-full px-4 py-2 bg-yellow-600 hover:bg-yellow-500 text-white font-bold rounded shadow transition-colors flex justify-between items-center">
+                    <span>Comprar</span> <span class="bg-yellow-800 px-2 py-1 rounded text-sm">22 <span class="coin-icon">$</span></span>
+                </button>
+            </div>
+
+            <div class="bg-gray-800 border-2 border-gray-600 p-4 rounded-lg flex flex-col items-center">
+                <h3 class="text-blue-400 font-bold text-lg mb-1">Rifle AK-47</h3>
+                <p class="text-sm text-gray-300 text-center mb-3">Disparo rápido, dispersión ligera.</p>
+                <button id="buyAKBtn" class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded shadow transition-colors flex justify-between items-center">
+                    <span>Comprar</span> <span class="bg-blue-800 px-2 py-1 rounded text-sm">114 <span class="coin-icon">$</span></span>
+                </button>
+            </div>
+
+            <button id="closeShopBtn" class="w-full px-6 py-3 mt-4 bg-gray-200 hover:bg-white text-black font-bold text-xl rounded shadow transition-colors">Salir de la Tienda</button>
         </div>
-        <button id="restartBtn" class="btn">Jugar de Nuevo</button>
     </div>
 
-    <!-- Mobile Controls Container -->
-    <div id="mobile-controls" class="ui-layer" style="z-index: 20; pointer-events: none;">
-        <div id="movement-joystick" class="mobile-joystick">
-            <div id="movement-knob" class="mobile-joystick-knob"></div>
+    <!-- Menú de Pausa -->
+    <div id="pauseScreen" class="absolute inset-0 flex flex-col items-center justify-center bg-black bg-opacity-80 z-40 hidden backdrop-blur-sm">
+        <h2 class="text-6xl text-white font-bold mb-8 tracking-widest drop-shadow-md">PAUSA</h2>
+        <div class="space-y-4 flex flex-col w-64">
+            <button id="resumeBtn" class="w-full px-6 py-3 bg-gray-200 hover:bg-white text-black font-bold text-xl rounded shadow transition-colors">Reanudar (Esc)</button>
+            <button id="quitBtn" class="w-full px-6 py-3 bg-red-600 hover:bg-red-500 text-white font-bold text-xl rounded shadow transition-colors">Salir al Menú</button>
         </div>
-        <div id="shoot-btn" class="mobile-shoot"></div>
     </div>
+
+    <!-- Pantalla de Muerte -->
+    <div id="gameOverScreen" class="absolute inset-0 flex flex-col items-center justify-center bg-red-900 bg-opacity-90 z-50 hidden">
+        <h1 class="text-6xl text-white font-bold mb-2">HAS MUERTO</h1>
+        <p class="text-2xl text-gray-300 mb-8">Puntuación: <span id="finalScore">0</span> | Oleada: <span id="finalWave">1</span></p>
+        <button id="restartBtn" class="px-8 py-3 bg-white text-red-900 text-xl font-bold rounded hover:bg-gray-200 transition-colors">INTENTAR DE NUEVO</button>
+    </div>
+
+    <!-- HUD -->
+    <div id="hud" class="absolute top-0 left-0 w-full p-4 flex justify-between items-start pointer-events-none z-10 hidden">
+        <div>
+            <div class="text-3xl font-bold text-white drop-shadow-md">Oleada: <span id="waveDisplay">1</span></div>
+            <div class="text-xl text-white font-bold drop-shadow-md">Puntos: <span id="scoreDisplay">0</span></div>
+            <div class="text-xl text-yellow-400 font-bold drop-shadow-md mt-1">Monedas: <span id="coinDisplay">0</span> <span class="coin-icon">$</span></div>
+            
+            <!-- Inventario de Armas y Objetos -->
+            <div class="mt-4 flex flex-col gap-2">
+                <div class="bg-gray-800 bg-opacity-70 border border-gray-600 px-3 py-1 rounded text-sm text-gray-200 flex items-center gap-2">
+                    <span class="text-blue-400">Arma:</span> <span id="weaponDisplay" class="font-bold uppercase">Pistola</span>
+                </div>
+                <div class="bg-gray-800 bg-opacity-70 border border-gray-600 px-3 py-1 rounded text-sm text-gray-200 flex items-center gap-2">
+                    <span class="text-yellow-400">Señuelos (E):</span> <span id="decoyDisplay" class="font-bold text-lg">0</span>
+                </div>
+            </div>
+        </div>
+        <div class="flex items-center gap-4 pointer-events-auto">
+            <div class="w-32 md:w-48 h-6 bg-gray-800 border-2 border-gray-600 rounded overflow-hidden">
+                <div id="healthBar" class="h-full bg-green-500 w-full transition-all duration-200"></div>
+            </div>
+            <button id="pauseBtnHud" class="w-10 h-10 bg-gray-800 border-2 border-gray-600 text-white rounded hover:bg-gray-700 flex items-center justify-center cursor-pointer shadow">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Controles Móviles -->
+    <div id="joystick-zone"><div id="joystick-knob"></div></div>
+    <div id="shoot-btn"></div>
+    <div id="decoy-btn" class="flex items-center justify-center font-bold text-white text-xl">💣</div>
+
+    <canvas id="gameCanvas"></canvas>
 
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
-        const startScreen = document.getElementById('startScreen');
-        const gameOverScreen = document.getElementById('gameOverScreen');
-        const pauseScreen = document.getElementById('pauseScreen');
-        const pauseBtnUI = document.getElementById('pauseBtnUI');
-        const resumeBtn = document.getElementById('resumeBtn');
-        const quitBtn = document.getElementById('quitBtn');
-        const scoreDisplay = document.getElementById('scoreDisplay');
-        const waveDisplay = document.getElementById('waveDisplay');
-        const healthBarFill = document.getElementById('health-bar-fill');
-        const finalScore = document.getElementById('finalScore');
-        const finalWave = document.getElementById('finalWave');
-        const mobileControls = document.getElementById('mobile-controls');
-        
-        // Input fields for custom names
-        const inputPlayerName = document.getElementById('inputPlayerName');
-        const inputExploderName = document.getElementById('inputExploderName');
-        const inputSpitterName = document.getElementById('inputSpitterName');
-        const inputTankName = document.getElementById('inputTankName');
-        
-        const movementJoystick = document.getElementById('movement-joystick');
-        const movementKnob = document.getElementById('movement-knob');
-        const shootBtn = document.getElementById('shoot-btn');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
 
-        let animationId;
+        const bgCanvas = document.createElement('canvas');
+        const bgCtx = bgCanvas.getContext('2d', { alpha: false });
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            generateBackground(); 
+        });
+
+        // Pantallas y HUD
+        const startScreen = document.getElementById('startScreen');
+        const pauseScreen = document.getElementById('pauseScreen');
+        const shopScreen = document.getElementById('shopScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const hud = document.getElementById('hud');
+        
+        let customNames = { player: 'Jugador', runner: 'Runner', exploder: 'Exploder', spitter: 'Spitter', tank: 'Tanque' };
+
+        // Estado del juego
         let gameActive = false;
         let isPaused = false;
-        let isMobile = false;
+        let isShopOpen = false;
+        let animationId;
         
+        // Atributos de Partida
         let score = 0;
         let wave = 1;
+        let coins = 0;
+        let decoys = 0;
+        let currentWeapon = 'pistola';
         let frameCount = 0;
-        let enemiesToSpawn = 0;
+        let waveAnnounceTimer = 0;
+        let lastFired = 0;
 
-        let customNames = {
-            player: 'JUGADOR',
-            exploder: 'EXPLODER',
-            spitter: 'SPITTER',
-            tank: 'TANQUE'
-        };
-
-        // Resize handler
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            if (window.innerWidth <= 768 || 'ontouchstart' in window) {
-                isMobile = true;
-                movementJoystick.style.display = 'block';
-                shootBtn.style.display = 'block';
-            } else {
-                isMobile = false;
-                movementJoystick.style.display = 'none';
-                shootBtn.style.display = 'none';
-            }
-        }
-        window.addEventListener('resize', resize);
-        resize();
-
-        const keys = { w: false, a: false, s: false, d: false, ArrowUp: false, ArrowLeft: false, ArrowDown: false, ArrowRight: false };
-        const mouse = { x: canvas.width / 2, y: canvas.height / 2, isDown: false };
-        
-        let joystickVector = { x: 0, y: 0 };
-        let autoShootInterval;
-        let mobileShootInterval;
-
-        // Keyboard events
-        window.addEventListener('keydown', (e) => { 
-            if (keys.hasOwnProperty(e.key)) keys[e.key] = true; 
-            if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
-                togglePause();
-            }
-        });
-        window.addEventListener('keyup', (e) => { if (keys.hasOwnProperty(e.key)) keys[e.key] = false; });
-
-        // Mouse events
-        canvas.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
-        canvas.addEventListener('mousedown', () => { if (gameActive && !isMobile) mouse.isDown = true; });
-        canvas.addEventListener('mouseup', () => { mouse.isDown = false; });
-
-        // Mobile Joystick Logic
-        let joystickActive = false;
-        let joystickCenter = { x: 0, y: 0 };
-
-        movementJoystick.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            joystickActive = true;
-            const rect = movementJoystick.getBoundingClientRect();
-            joystickCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-            handleJoystickMove(e.touches[0]);
-        }, { passive: false });
-
-        movementJoystick.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            if (joystickActive) handleJoystickMove(e.touches[0]);
-        }, { passive: false });
-
-        movementJoystick.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            joystickActive = false;
-            resetJoystick();
-        }, { passive: false });
-
-        function handleJoystickMove(touch) {
-            const dx = touch.clientX - joystickCenter.x;
-            const dy = touch.clientY - joystickCenter.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            const maxRadius = 40;
-
-            let knobX = dx;
-            let knobY = dy;
-
-            if (distance > maxRadius) {
-                const ratio = maxRadius / distance;
-                knobX = dx * ratio;
-                knobY = dy * ratio;
-            }
-
-            movementKnob.style.transform = `translate(calc(-50% + ${knobX}px), calc(-50% + ${knobY}px))`;
-            
-            joystickVector.x = dx / (distance || 1);
-            joystickVector.y = dy / (distance || 1);
-            
-            // Aiming follows movement on mobile if not manually aiming
-            if(isMobile) {
-                mouse.x = player.x + joystickVector.x * 100;
-                mouse.y = player.y + joystickVector.y * 100;
-            }
-        }
-
-        function resetJoystick() {
-            movementKnob.style.transform = `translate(-50%, -50%)`;
-            joystickVector = { x: 0, y: 0 };
-        }
-
-        shootBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            if (gameActive) {
-                mouse.isDown = true;
-                shootBtn.style.background = 'rgba(239, 68, 68, 0.8)';
-            }
-        }, { passive: false });
-
-        shootBtn.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            mouse.isDown = false;
-            shootBtn.style.background = 'rgba(239, 68, 68, 0.5)';
-        }, { passive: false });
-
-        class Player {
-            constructor() {
-                this.x = canvas.width / 2;
-                this.y = canvas.height / 2;
-                this.radius = 20;
-                this.color = '#3b82f6'; // Blue
-                this.speed = 4;
-                this.maxHealth = 100;
-                this.health = this.maxHealth;
-                this.angle = 0;
-                this.name = customNames.player;
-            }
-
-            draw() {
-                ctx.save();
-                ctx.translate(this.x, this.y);
-                this.angle = Math.atan2(mouse.y - this.y, mouse.x - this.x);
-                ctx.rotate(this.angle);
-
-                // Body
-                ctx.beginPath();
-                ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.fill();
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = '#1e3a8a';
-                ctx.stroke();
-
-                // Gun
-                ctx.beginPath();
-                ctx.rect(10, -5, 25, 10);
-                ctx.fillStyle = '#9ca3af';
-                ctx.fill();
-                ctx.stroke();
-                
-                ctx.restore();
-
-                // Name tag
-                if (this.name) {
-                    ctx.fillStyle = '#93c5fd'; 
-                    ctx.font = 'bold 13px "Roboto Mono", monospace';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(this.name, this.x, this.y - this.radius - 12);
-                }
-            }
-
-            update() {
-                // Keyboard movement
-                let dx = 0; let dy = 0;
-                if (keys.w || keys.ArrowUp) dy -= 1;
-                if (keys.s || keys.ArrowDown) dy += 1;
-                if (keys.a || keys.ArrowLeft) dx -= 1;
-                if (keys.d || keys.ArrowRight) dx += 1;
-
-                // Normalize keyboard diagonal
-                if (dx !== 0 && dy !== 0) {
-                    const length = Math.sqrt(dx * dx + dy * dy);
-                    dx /= length; dy /= length;
-                }
-
-                // Combine with joystick
-                const finalDx = (dx !== 0 ? dx : joystickVector.x) * this.speed;
-                const finalDy = (dy !== 0 ? dy : joystickVector.y) * this.speed;
-
-                this.x += finalDx;
-                this.y += finalDy;
-
-                // Bounds checking
-                this.x = Math.max(this.radius, Math.min(canvas.width - this.radius, this.x));
-                this.y = Math.max(this.radius, Math.min(canvas.height - this.radius, this.y));
-
-                this.draw();
-            }
-        }
-
-        class Bullet {
-            constructor(x, y, angle) {
-                this.x = x;
-                this.y = y;
-                this.radius = 4;
-                this.color = '#fbbf24'; // Yellow
-                this.speed = 12;
-                this.velocity = {
-                    x: Math.cos(angle) * this.speed,
-                    y: Math.sin(angle) * this.speed
-                };
-                this.damage = 1;
-            }
-
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.fill();
-            }
-
-            update() {
-                this.x += this.velocity.x;
-                this.y += this.velocity.y;
-                this.draw();
-            }
-        }
-
-        class SpitProjectile {
-            constructor(x, y, targetX, targetY) {
-                this.x = x;
-                this.y = y;
-                this.targetX = targetX;
-                this.targetY = targetY;
-                this.radius = 6;
-                this.color = '#a855f7'; // Purple
-                this.speed = 5;
-                const angle = Math.atan2(targetY - y, targetX - x);
-                this.velocity = {
-                    x: Math.cos(angle) * this.speed,
-                    y: Math.sin(angle) * this.speed
-                };
-                this.distanceTraveled = 0;
-                this.maxDistance = Math.hypot(targetX - x, targetY - y);
-            }
-
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.shadowColor = this.color;
-                ctx.shadowBlur = 10;
-                ctx.fill();
-                ctx.shadowBlur = 0;
-            }
-
-            update() {
-                this.x += this.velocity.x;
-                this.y += this.velocity.y;
-                this.distanceTraveled += this.speed;
-                this.draw();
-            }
-        }
-
-        class Puddle {
-            constructor(x, y) {
-                this.x = x;
-                this.y = y;
-                this.radius = 5;
-                this.maxRadius = 35;
-                this.color = 'rgba(168, 85, 247, 0.4)'; // Transparent purple
-                this.lifeTime = 300; // frames
-                this.damage = 0.5; // per frame
-            }
-
-            draw() {
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.fill();
-                
-                // Inner core
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius * 0.5, 0, Math.PI * 2);
-                ctx.fillStyle = 'rgba(147, 51, 234, 0.6)';
-                ctx.fill();
-            }
-
-            update() {
-                if (this.radius < this.maxRadius) {
-                    this.radius += 0.5;
-                }
-                this.lifeTime--;
-                this.draw();
-            }
-        }
-
-        class Enemy {
-            constructor(x, y, type) {
-                this.x = x;
-                this.y = y;
-                this.type = type;
-                this.name = null;
-                this.lastShot = 0; // Para el spitter
-                
-                // Default Normal
-                this.radius = 15;
-                this.color = '#22c55e'; // Green
-                this.baseSpeed = 1.2 + (wave * 0.1);
-                this.health = 2 + Math.floor(wave / 2);
-                this.damage = 10;
-                this.scoreValue = 10;
-
-                if (type === 'fast') {
-                    this.radius = 12;
-                    this.color = '#eab308'; // Yellow
-                    this.baseSpeed = 2.2 + (wave * 0.15);
-                    this.health = 1;
-                    this.damage = 5;
-                    this.scoreValue = 15;
-                } else if (type === 'tank') {
-                    this.radius = 25;
-                    this.color = '#14532d'; // Dark green
-                    this.baseSpeed = 0.8 + (wave * 0.05);
-                    this.health = 5 + Math.floor(wave / 3);
-                    this.damage = 25;
-                    this.scoreValue = 30;
-                    this.name = customNames.tank;
-                } else if (type === 'exploder') {
-                    this.radius = 18;
-                    this.color = '#ef4444'; // Bright Red
-                    this.baseSpeed = 1.6 + (wave * 0.08);
-                    this.health = 2;
-                    this.damage = 0; // Daño se aplica en la explosión
-                    this.scoreValue = 25;
-                    this.name = customNames.exploder;
-                } else if (type === 'spitter') {
-                    this.radius = 16;
-                    this.color = '#9333ea'; // Purple
-                    this.baseSpeed = 1.3 + (wave * 0.06);
-                    this.health = 2;
-                    this.damage = 10;
-                    this.scoreValue = 20;
-                    this.lastShot = Date.now() + Math.random() * 2000;
-                    this.name = customNames.spitter;
-                }
-            }
-
-            draw() {
-                ctx.save();
-                const angle = Math.atan2(player.y - this.y, player.x - this.x);
-                ctx.translate(this.x, this.y);
-                ctx.rotate(angle);
-
-                ctx.beginPath();
-                ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.fill();
-                ctx.lineWidth = 1.5;
-                ctx.strokeStyle = '#000';
-                ctx.stroke();
-
-                // Draw zombie arms
-                ctx.beginPath();
-                ctx.rect(this.radius - 5, -this.radius - 5, 12, 6);
-                ctx.rect(this.radius - 5, this.radius - 1, 12, 6);
-                ctx.fillStyle = this.color;
-                ctx.fill();
-                ctx.stroke();
-                
-                ctx.restore();
-
-                // Pulse effect for exploder
-                if (this.type === 'exploder') {
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.radius + Math.sin(frameCount * 0.2) * 3, 0, Math.PI * 2);
-                    ctx.strokeStyle = 'rgba(239, 68, 68, 0.5)';
-                    ctx.stroke();
-                }
-
-                if (this.name) {
-                    let nameColor = '#fff';
-                    if (this.type === 'exploder') nameColor = '#fca5a5';
-                    if (this.type === 'spitter') nameColor = '#d8b4fe';
-                    if (this.type === 'tank') nameColor = '#86efac';
-
-                    ctx.fillStyle = nameColor;
-                    ctx.font = 'bold 11px "Roboto Mono", monospace';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(this.name, this.x, this.y - this.radius - 12);
-                }
-            }
-
-            update() {
-                const dx = player.x - this.x;
-                const dy = player.y - this.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                let move = true;
-
-                // Spitter behavior
-                if (this.type === 'spitter') {
-                    if (distance < 250) {
-                        move = false; // Detenerse para disparar
-                    }
-                    if (Date.now() - this.lastShot > 3000 && distance < 400) {
-                        spitProjectiles.push(new SpitProjectile(this.x, this.y, player.x, player.y));
-                        this.lastShot = Date.now();
-                    }
-                }
-
-                if (move) {
-                    this.x += (dx / distance) * this.baseSpeed;
-                    this.y += (dy / distance) * this.baseSpeed;
-                }
-
-                this.draw();
-            }
-        }
-
-        class Explosion {
-            constructor(x, y) {
-                this.x = x;
-                this.y = y;
-                this.radius = 5;
-                this.maxRadius = 80;
-                this.alpha = 1;
-                this.damage = 30; // Daño al jugador
-            }
-
-            draw() {
-                ctx.save();
-                ctx.globalAlpha = this.alpha;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = '#ef4444';
-                ctx.fill();
-                
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius * 0.7, 0, Math.PI * 2);
-                ctx.fillStyle = '#fbbf24';
-                ctx.fill();
-                ctx.restore();
-            }
-
-            update() {
-                this.radius += 5;
-                this.alpha -= 0.05;
-                this.draw();
-            }
-        }
-
-        class Particle {
-            constructor(x, y, color) {
-                this.x = x;
-                this.y = y;
-                this.radius = Math.random() * 3 + 1;
-                this.color = color;
-                const angle = Math.random() * Math.PI * 2;
-                const speed = Math.random() * 4 + 1;
-                this.velocity = { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed };
-                this.alpha = 1;
-            }
-            draw() {
-                ctx.save();
-                ctx.globalAlpha = this.alpha;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.fill();
-                ctx.restore();
-            }
-            update() {
-                this.x += this.velocity.x;
-                this.y += this.velocity.y;
-                this.alpha -= 0.02;
-                this.draw();
-            }
-        }
-
+        // Entidades
         let player;
         let bullets = [];
         let enemies = [];
@@ -703,342 +197,753 @@
         let explosions = [];
         let spitProjectiles = [];
         let puddles = [];
-        let lastFired = 0;
+        let activeDecoys = [];
+        let groundCoins = [];
+        
+        // Entorno
+        let trees = [];
+        let rocks = [];
+        let obstacles = []; 
+        let currentShopZone = null;
+
+        const keys = { w: false, a: false, s: false, d: false, e: false, ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
+        const mouse = { x: width / 2, y: height / 2, isDown: false };
+        let joystickVector = { x: 0, y: 0 };
+        let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || ('ontouchstart' in window);
+
+        window.addEventListener('keydown', (e) => {
+            if (keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()] = true;
+            if (keys.hasOwnProperty(e.key)) keys[e.key] = true; // Para las flechas
+            
+            if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') togglePause();
+            if ((e.key === 'e' || e.key === 'E') && gameActive && !isPaused && !isShopOpen) useDecoy();
+        });
+        window.addEventListener('keyup', (e) => {
+            if (keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()] = false;
+            if (keys.hasOwnProperty(e.key)) keys[e.key] = false;
+        });
+        window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; });
+        window.addEventListener('mousedown', () => { mouse.isDown = true; });
+        window.addEventListener('mouseup', () => { mouse.isDown = false; });
+        window.addEventListener('blur', () => { if(gameActive && !isPaused && !isShopOpen) togglePause(); });
+
+        // Controles Táctiles
+        const joystickZone = document.getElementById('joystick-zone');
+        const joystickKnob = document.getElementById('joystick-knob');
+        const shootBtn = document.getElementById('shoot-btn');
+        const decoyBtn = document.getElementById('decoy-btn');
+        let joyCenterX, joyCenterY, joyMaxRadius = 40;
+
+        if (isMobile) {
+            joystickZone.style.display = 'block';
+            shootBtn.style.display = 'block';
+            decoyBtn.style.display = 'flex';
+            
+            joystickZone.addEventListener('touchstart', handleJoystickStart, {passive: false});
+            joystickZone.addEventListener('touchmove', handleJoystickMove, {passive: false});
+            joystickZone.addEventListener('touchend', handleJoystickEnd);
+            
+            shootBtn.addEventListener('touchstart', (e) => { e.preventDefault(); mouse.isDown = true; });
+            shootBtn.addEventListener('touchend', (e) => { e.preventDefault(); mouse.isDown = false; });
+            
+            decoyBtn.addEventListener('touchstart', (e) => { e.preventDefault(); useDecoy(); });
+        }
+
+        function handleJoystickStart(e) { e.preventDefault(); const rect = joystickZone.getBoundingClientRect(); joyCenterX = rect.left + rect.width / 2; joyCenterY = rect.top + rect.height / 2; updateJoystick(e.touches[0].clientX, e.touches[0].clientY); }
+        function handleJoystickMove(e) { e.preventDefault(); updateJoystick(e.touches[0].clientX, e.touches[0].clientY); }
+        function handleJoystickEnd(e) { e.preventDefault(); joystickVector = { x: 0, y: 0 }; joystickKnob.style.transform = `translate(-50%, -50%)`; }
+        function updateJoystick(touchX, touchY) {
+            let dx = touchX - joyCenterX, dy = touchY - joyCenterY, distance = Math.hypot(dx, dy);
+            if (distance > joyMaxRadius) { dx = (dx / distance) * joyMaxRadius; dy = (dy / distance) * joyMaxRadius; }
+            joystickKnob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+            joystickVector.x = dx / joyMaxRadius; joystickVector.y = dy / joyMaxRadius;
+        }
+
+        function generateBackground() {
+            bgCanvas.width = width;
+            bgCanvas.height = height;
+            
+            // Color verde hoja para el pasto base
+            bgCtx.fillStyle = '#2d7a31'; 
+            bgCtx.fillRect(0, 0, width, height);
+
+            const area = width * height;
+
+            // Manchas de tierra: Irregulares, orgánicas y color marrón tierra
+            for (let i = 0; i < area / 15000; i++) {
+                let cx = Math.random() * width;
+                let cy = Math.random() * height;
+                let numBlobs = Math.floor(Math.random() * 4) + 4; // 4 a 7 formas irregulares unidas
+                let baseRadius = Math.random() * 60 + 50;
+                
+                bgCtx.fillStyle = '#5c3a21'; // Color marrón sólido/opaco
+                for (let j = 0; j < numBlobs; j++) {
+                    bgCtx.beginPath();
+                    let offsetX = (Math.random() - 0.5) * baseRadius * 1.5;
+                    let offsetY = (Math.random() - 0.5) * baseRadius * 1.2;
+                    let rX = baseRadius * (0.4 + Math.random() * 0.6);
+                    let rY = baseRadius * (0.3 + Math.random() * 0.5);
+                    let angle = Math.random() * Math.PI;
+                    bgCtx.ellipse(cx + offsetX, cy + offsetY, rX, rY, angle, 0, Math.PI * 2);
+                    bgCtx.fill();
+                }
+            }
+
+            // Las pequeñas piedras se mantienen para dar un toque de textura al suelo
+            for (let i = 0; i < area / 8000; i++) {
+                bgCtx.beginPath(); bgCtx.arc(Math.random() * width, Math.random() * height, Math.random() * 2 + 1.5, 0, Math.PI * 2);
+                bgCtx.fillStyle = Math.random() > 0.5 ? '#71717a' : '#52525b'; bgCtx.fill();
+            }
+        }
+
+        class Tree {
+            constructor(x, y) {
+                this.x = x; this.y = y; this.radius = Math.random() * 30 + 45; this.collisionRadius = this.radius * 0.35; 
+            }
+            drawBase() {
+                ctx.save(); ctx.translate(this.x, this.y);
+                ctx.beginPath(); ctx.arc(8, 8, this.radius, 0, Math.PI * 2); ctx.fillStyle = 'rgba(0, 0, 0, 0.4)'; ctx.fill(); 
+                ctx.beginPath(); ctx.arc(0, 0, this.collisionRadius, 0, Math.PI * 2); ctx.fillStyle = '#3f2a14'; ctx.fill(); 
+                ctx.restore();
+            }
+            drawCanopy() {
+                ctx.save(); ctx.globalAlpha = 0.85; ctx.translate(this.x, this.y);
+                ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI * 2); ctx.fillStyle = '#065f46'; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#022c22'; ctx.stroke();
+                ctx.beginPath(); ctx.arc(0, 0, this.radius * 0.65, 0, Math.PI * 2); ctx.fillStyle = '#047857'; ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        class Rock {
+            constructor(x, y) {
+                this.x = x; this.y = y; this.radius = Math.random() * 25 + 20; this.collisionRadius = this.radius - 2; 
+            }
+            draw() {
+                ctx.save(); ctx.translate(this.x, this.y);
+                ctx.beginPath(); ctx.arc(6, 6, this.radius, 0, Math.PI * 2); ctx.fillStyle = 'rgba(0, 0, 0, 0.4)'; ctx.fill();
+                ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI * 2); ctx.fillStyle = '#52525b'; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#3f3f46'; ctx.stroke();
+                ctx.beginPath(); ctx.arc(-this.radius*0.2, -this.radius*0.2, this.radius*0.5, 0, Math.PI * 2); ctx.fillStyle = '#71717a'; ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        class Coin {
+            constructor(x, y) {
+                this.x = x; this.y = y; this.radius = 5;
+                this.vx = (Math.random() - 0.5) * 6; this.vy = (Math.random() - 0.5) * 6;
+                this.life = 900; // 15 segundos
+            }
+            draw() {
+                ctx.save();
+                if (this.life < 180 && this.life % 10 < 5) ctx.globalAlpha = 0.3; // Parpadeo al final
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); 
+                ctx.fillStyle = '#fbbf24'; ctx.fill();
+                ctx.lineWidth = 1.5; ctx.strokeStyle = '#b45309'; ctx.stroke();
+                ctx.restore();
+            }
+            update() {
+                this.vx *= 0.85; this.vy *= 0.85; // Fricción
+                this.x += this.vx; this.y += this.vy;
+                
+                // Imán de monedas hacia el jugador
+                let distToPlayer = Math.hypot(player.x - this.x, player.y - this.y);
+                if (distToPlayer < 80) { // Radio de atracción
+                    this.x += (player.x - this.x) * 0.08;
+                    this.y += (player.y - this.y) * 0.08;
+                }
+
+                // Recolección
+                if (distToPlayer < player.radius + this.radius) {
+                    coins++; updateHUD();
+                    return true; // Devuelve true para ser eliminado del array
+                }
+
+                this.life--;
+                this.draw();
+                return this.life <= 0;
+            }
+        }
+
+        class Decoy {
+            constructor(x, y) {
+                this.x = x; this.y = y; this.radius = 8;
+                this.life = 200; // ~3.3 segundos
+                this.maxLife = 200;
+            }
+            draw() {
+                ctx.save(); ctx.translate(this.x, this.y);
+                // Dibujar el artefacto
+                ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI * 2); 
+                ctx.fillStyle = '#333'; ctx.fill();
+                ctx.lineWidth = 2; ctx.strokeStyle = '#fbbf24'; ctx.stroke();
+                // Luz parpadeante y ondas (pitido)
+                let beepCycle = this.life % 20;
+                if (beepCycle < 10) {
+                    ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI*2); ctx.fillStyle = '#ef4444'; ctx.fill();
+                }
+                
+                // Ondas de sonido visuales
+                ctx.beginPath(); ctx.arc(0, 0, this.radius + (20 - beepCycle)*2, 0, Math.PI*2);
+                ctx.strokeStyle = `rgba(239, 68, 68, ${beepCycle/20})`; ctx.stroke();
+                
+                ctx.restore();
+            }
+            update() {
+                this.life--;
+                this.draw();
+                return this.life <= 0;
+            }
+        }
+
+        class ShopZone {
+            constructor() {
+                this.x = width / 2 + (Math.random() - 0.5) * 300;
+                this.y = height / 2 + (Math.random() - 0.5) * 300;
+                // Mantener dentro de los límites
+                this.x = Math.max(100, Math.min(width - 100, this.x));
+                this.y = Math.max(100, Math.min(height - 100, this.y));
+                
+                this.radius = 45;
+                this.life = 1200; // 20 segundos para interactuar
+            }
+            draw() {
+                ctx.save();
+                ctx.globalAlpha = Math.min(1, this.life / 60); // Desvanecerse al desaparecer
+                
+                // Brillo
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius + Math.sin(frameCount * 0.1) * 5, 0, Math.PI*2);
+                ctx.fillStyle = 'rgba(59, 130, 246, 0.2)'; ctx.fill();
+                
+                // Zona base
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(30, 58, 138, 0.6)'; ctx.fill();
+                ctx.lineWidth = 3; ctx.strokeStyle = '#60a5fa'; ctx.stroke();
+                
+                // Icono / Texto
+                ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 24px "Roboto Mono"'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText('$', this.x, this.y - 5);
+                ctx.fillStyle = '#fff'; ctx.font = 'bold 12px "Roboto Mono"';
+                ctx.fillText('TIENDA', this.x, this.y + 15);
+                
+                ctx.restore();
+            }
+            update() {
+                this.life--;
+                this.draw();
+                
+                // Check player colision
+                if (Math.hypot(player.x - this.x, player.y - this.y) < player.radius + this.radius) {
+                    openShop();
+                    return true; // Elimina la zona después de abrirla
+                }
+                return this.life <= 0;
+            }
+        }
+
+        class Player {
+            constructor() {
+                this.x = width / 2; this.y = height / 2; this.radius = 15;
+                this.color = '#3b82f6'; this.speed = 4.5;
+                this.maxHealth = 100; this.health = 100;
+            }
+            draw() {
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.fill();
+                ctx.lineWidth = 2; ctx.strokeStyle = '#1d4ed8'; ctx.stroke();
+
+                ctx.fillStyle = '#93c5fd'; ctx.font = 'bold 12px "Roboto Mono"'; ctx.textAlign = 'center'; ctx.lineWidth = 2;
+                ctx.strokeStyle = '#000'; ctx.strokeText(customNames.player, this.x, this.y - this.radius - 8); ctx.fillText(customNames.player, this.x, this.y - this.radius - 8);
+
+                let angle;
+                if (isMobile && (joystickVector.x !== 0 || joystickVector.y !== 0)) angle = Math.atan2(joystickVector.y, joystickVector.x);
+                else if (!isMobile) angle = Math.atan2(mouse.y - this.y, mouse.x - this.x);
+                else angle = 0; 
+
+                // Dibujar cañón del arma
+                ctx.beginPath(); ctx.moveTo(this.x, this.y); 
+                
+                if (currentWeapon === 'ak47') {
+                    ctx.lineTo(this.x + Math.cos(angle) * 35, this.y + Math.sin(angle) * 35);
+                    ctx.lineWidth = 5; ctx.strokeStyle = '#4b5563'; // Más largo y gris oscuro
+                } else {
+                    ctx.lineTo(this.x + Math.cos(angle) * 25, this.y + Math.sin(angle) * 25);
+                    ctx.lineWidth = 6; ctx.strokeStyle = '#94a3b8'; 
+                }
+                ctx.stroke();
+            }
+            update() {
+                let dx = 0, dy = 0;
+                if (isMobile) { dx = joystickVector.x; dy = joystickVector.y; } 
+                else {
+                    if (keys.a || keys.arrowleft) dx = -1; if (keys.d || keys.arrowright) dx = 1;
+                    if (keys.w || keys.arrowup) dy = -1; if (keys.s || keys.arrowdown) dy = 1;
+                }
+                if (dx !== 0 && dy !== 0) { const length = Math.hypot(dx, dy); dx /= length; dy /= length; }
+
+                this.x += dx * this.speed; this.y += dy * this.speed;
+
+                for (let obs of obstacles) {
+                    let distX = this.x - obs.x; let distY = this.y - obs.y;
+                    let distance = Math.hypot(distX, distY);
+                    if (distance < this.radius + obs.collisionRadius) {
+                        let overlap = (this.radius + obs.collisionRadius) - distance;
+                        let angle = Math.atan2(distY, distX);
+                        this.x += Math.cos(angle) * overlap; this.y += Math.sin(angle) * overlap;
+                    }
+                }
+
+                this.x = Math.max(this.radius, Math.min(width - this.radius, this.x));
+                this.y = Math.max(this.radius, Math.min(height - this.radius, this.y));
+                this.draw();
+            }
+        }
+
+        class Bullet {
+            constructor(x, y, angle, speed = 12) {
+                this.x = x; this.y = y; this.velocity = { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed };
+                this.radius = 3; this.color = '#fbbf24'; this.life = 100;
+            }
+            draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.fill(); }
+            update() { this.x += this.velocity.x; this.y += this.velocity.y; this.life--; this.draw(); }
+        }
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x; this.y = y; this.radius = Math.random() * 3 + 1;
+                this.velocity = { x: (Math.random() - 0.5) * 6, y: (Math.random() - 0.5) * 6 };
+                this.color = color; this.alpha = 1;
+            }
+            draw() { ctx.save(); ctx.globalAlpha = this.alpha; ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.fill(); ctx.restore(); }
+            update() { this.velocity.x *= 0.95; this.velocity.y *= 0.95; this.x += this.velocity.x; this.y += this.velocity.y; this.alpha -= 0.02; this.draw(); }
+        }
+
+        class Explosion {
+            constructor(x, y, isDecoy = false) {
+                this.x = x; this.y = y; this.radius = 0; 
+                this.maxRadius = isDecoy ? 150 : 100; // El señuelo hace una explosión más grande
+                this.alpha = 1; this.damage = 30; 
+                this.playerDamaged = false; this.enemiesDamaged = new Set();
+            }
+            draw() {
+                ctx.save(); ctx.globalAlpha = this.alpha; ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fillStyle = 'rgba(239, 68, 68, 0.7)'; ctx.fill();
+                ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255, 255, 0, 0.8)'; ctx.stroke(); ctx.restore();
+            }
+            update() { this.radius += 8; this.alpha -= 0.04; this.draw(); }
+        }
+
+        class SpitProjectile {
+            constructor(x, y, targetX, targetY) {
+                this.x = x; this.y = y; const angle = Math.atan2(targetY - y, targetX - x);
+                this.velocity = { x: Math.cos(angle) * 5, y: Math.sin(angle) * 5 };
+                this.targetX = targetX; this.targetY = targetY; this.radius = 6;
+            }
+            draw() { ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fillStyle = '#a855f7'; ctx.fill(); }
+            update() {
+                this.x += this.velocity.x; this.y += this.velocity.y; this.draw();
+                return Math.hypot(this.x - this.targetX, this.y - this.targetY) < 10;
+            }
+        }
+
+        class Puddle {
+            constructor(x, y) { this.x = x; this.y = y; this.radius = 45; this.life = 350; this.damageTimer = 0; }
+            draw() {
+                ctx.save(); ctx.globalAlpha = Math.min(1, this.life / 60); ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(168, 85, 247, 0.4)'; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(168, 85, 247, 0.8)'; ctx.stroke(); ctx.restore();
+            }
+            update() { this.life--; this.draw(); }
+        }
+
+        class Enemy {
+            constructor(x, y, type) {
+                this.x = x; this.y = y; this.type = type; this.spitCooldown = 0;
+                switch(type) {
+                    case 'fast':
+                        this.radius = 12; this.color = '#f97316'; this.speed = Math.random() * 1.5 + 2.8;
+                        this.health = 1; this.scoreValue = 15; this.name = customNames.runner; break;
+                    case 'tank':
+                        this.radius = 28; this.color = '#14532d'; this.speed = Math.random() * 0.4 + 0.6; 
+                        this.health = 18; this.scoreValue = 50; this.name = customNames.tank; break;
+                    case 'exploder':
+                        this.radius = 16; this.color = '#ef4444'; this.speed = Math.random() * 1 + 1.2;
+                        this.health = 2; this.scoreValue = 20; this.name = customNames.exploder; break;
+                    case 'spitter':
+                        this.radius = 14; this.color = '#a855f7'; this.speed = Math.random() * 0.8 + 1;
+                        this.health = 3; this.scoreValue = 25; this.name = customNames.spitter; break;
+                    default: 
+                        this.radius = 15; this.color = '#22c55e'; this.speed = Math.random() * 1 + 1.2;
+                        this.health = 2; this.scoreValue = 10; this.name = ""; break;
+                }
+            }
+            draw(targetAngle) {
+                ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(targetAngle); ctx.lineCap = 'round';
+                
+                ctx.beginPath(); ctx.moveTo(0, -this.radius * 0.65); ctx.lineTo(this.radius + 6, -this.radius * 0.65); ctx.lineWidth = this.radius * 0.45 + 2; ctx.strokeStyle = '#000'; ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, this.radius * 0.65); ctx.lineTo(this.radius + 6, this.radius * 0.65); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, -this.radius * 0.65); ctx.lineTo(this.radius + 6, -this.radius * 0.65); ctx.lineWidth = this.radius * 0.45; ctx.strokeStyle = this.color; ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, this.radius * 0.65); ctx.lineTo(this.radius + 6, this.radius * 0.65); ctx.stroke();
+
+                ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#000'; ctx.stroke();
+                ctx.restore();
+
+                if (this.name !== "") {
+                    ctx.fillStyle = this.color; ctx.font = 'bold 11px "Roboto Mono"'; ctx.textAlign = 'center'; ctx.lineWidth = 2;
+                    ctx.strokeStyle = '#000'; ctx.strokeText(this.name, this.x, this.y - this.radius - 12); ctx.fillText(this.name, this.x, this.y - this.radius - 12);
+                }
+            }
+            update() {
+                // Determinar el objetivo (Jugador o Señuelo activo más cercano)
+                let targetX = player.x;
+                let targetY = player.y;
+                
+                if (activeDecoys.length > 0) {
+                    let closestDecoy = activeDecoys[0];
+                    let minDist = Math.hypot(this.x - closestDecoy.x, this.y - closestDecoy.y);
+                    for (let i = 1; i < activeDecoys.length; i++) {
+                        let dist = Math.hypot(this.x - activeDecoys[i].x, this.y - activeDecoys[i].y);
+                        if (dist < minDist) { minDist = dist; closestDecoy = activeDecoys[i]; }
+                    }
+                    targetX = closestDecoy.x; targetY = closestDecoy.y;
+                }
+
+                const angle = Math.atan2(targetY - this.y, targetX - this.x);
+                const distToTarget = Math.hypot(targetX - this.x, targetY - this.y);
+
+                if (this.type === 'spitter' && distToTarget < 250 && activeDecoys.length === 0) {
+                    // Los Spitters prefieren escupirle al jugador si no hay señuelos
+                    if (this.spitCooldown <= 0) {
+                        spitProjectiles.push(new SpitProjectile(this.x, this.y, targetX, targetY));
+                        this.spitCooldown = 180; 
+                    }
+                } else {
+                    this.x += Math.cos(angle) * this.speed;
+                    this.y += Math.sin(angle) * this.speed;
+                }
+
+                // Colisión con árboles y rocas
+                for (let obs of obstacles) {
+                    let distX = this.x - obs.x; let distY = this.y - obs.y;
+                    let distance = Math.hypot(distX, distY);
+                    if (distance < this.radius + obs.collisionRadius) {
+                        let overlap = (this.radius + obs.collisionRadius) - distance;
+                        let collAngle = Math.atan2(distY, distX);
+                        this.x += Math.cos(collAngle) * overlap; this.y += Math.sin(collAngle) * overlap;
+                    }
+                }
+
+                if (this.spitCooldown > 0) this.spitCooldown--;
+                this.draw(angle);
+            }
+        }
 
         function spawnEnemy() {
-            if (enemies.length >= 50) return; // Cap max enemies
-
-            const radius = 30;
             let x, y;
-            if (Math.random() < 0.5) {
-                x = Math.random() < 0.5 ? 0 - radius : canvas.width + radius;
-                y = Math.random() * canvas.height;
-            } else {
-                x = Math.random() * canvas.width;
-                y = Math.random() < 0.5 ? 0 - radius : canvas.height + radius;
-            }
+            if (Math.random() < 0.5) { x = Math.random() < 0.5 ? -30 : width + 30; y = Math.random() * height; } 
+            else { x = Math.random() * width; y = Math.random() < 0.5 ? -30 : height + 30; }
 
             let type = 'normal';
-            const rand = Math.random();
-            
-            // Nuevas probabilidades ajustadas: Tanque poco común (10%)
-            if (wave >= 4) {
-                // Caos total: 35% Exploder, 35% Spitter, 20% Rápidos, 10% Tanque
-                if (rand < 0.35) type = 'exploder';
-                else if (rand < 0.70) type = 'spitter';
-                else if (rand < 0.90) type = 'fast';
-                else type = 'tank'; // 10% de probabilidad (No común)
-            } else if (wave === 3) {
-                // Transición agresiva
-                if (rand < 0.25) type = 'exploder';
-                else if (rand < 0.50) type = 'spitter';
-                else if (rand < 0.80) type = 'fast';
-                else if (rand < 0.90) type = 'normal';
-                else type = 'tank'; // 10% de probabilidad
-            } else if (wave === 2) {
-                // Primeras dificultades
-                if (rand < 0.40) type = 'fast';
-                else if (rand < 0.90) type = 'normal';
-                else type = 'tank'; // 10% de probabilidad
-            }
+            let rand = Math.random();
 
+            if (wave === 1) {
+                type = 'normal';
+            } else if (wave === 2) {
+                type = rand < 0.3 ? 'fast' : 'normal';
+            } else {
+                if (rand < 0.10) type = 'tank'; 
+                else if (rand < 0.50) type = 'exploder'; 
+                else if (rand < 0.90) type = 'spitter';
+                else type = 'fast'; 
+            }
             enemies.push(new Enemy(x, y, type));
         }
 
-        function createParticles(x, y, color, amount) {
-            for (let i = 0; i < amount; i++) {
-                particles.push(new Particle(x, y, color));
+        function spawnCoinDrop(enemy) {
+            let numCoins = (enemy.type === 'tank') ? Math.floor(Math.random() * 4) + 5 : Math.floor(Math.random() * 5) + 1;
+            for(let c = 0; c < numCoins; c++) groundCoins.push(new Coin(enemy.x, enemy.y));
+        }
+
+        function fireBullet() {
+            let angle;
+            if (isMobile && (joystickVector.x !== 0 || joystickVector.y !== 0)) angle = Math.atan2(joystickVector.y, joystickVector.x);
+            else if (!isMobile) angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
+            else angle = 0; 
+
+            let spread = 0;
+            let cooldown = 200; // Pistola
+
+            if (currentWeapon === 'ak47') {
+                spread = (Math.random() - 0.5) * 0.25; // Dispersión
+                cooldown = 100; // Más rápido
+            }
+
+            bullets.push(new Bullet(player.x, player.y, angle + spread));
+            lastFired = Date.now();
+            return cooldown;
+        }
+
+        function useDecoy() {
+            if (decoys > 0) {
+                decoys--;
+                updateHUD();
+                activeDecoys.push(new Decoy(player.x, player.y));
             }
         }
 
-        function triggerExplosion(x, y) {
-            explosions.push(new Explosion(x, y));
+        function createParticles(x, y, color, amount) { for (let i = 0; i < amount; i++) particles.push(new Particle(x, y, color)); }
+        
+        function updateHUD() { 
+            document.getElementById('scoreDisplay').innerText = score; 
+            document.getElementById('waveDisplay').innerText = wave; 
+            document.getElementById('coinDisplay').innerText = coins;
+            document.getElementById('decoyDisplay').innerText = decoys;
+            document.getElementById('weaponDisplay').innerText = currentWeapon;
             
-            // Check damage to player
-            const distToPlayer = Math.hypot(player.x - x, player.y - y);
-            if (distToPlayer < 80) { // Radio de explosión
-                player.health -= 30;
-                updateHealthUI();
-            }
-
-            // Check damage to other enemies
-            for (let i = enemies.length - 1; i >= 0; i--) {
-                const enemy = enemies[i];
-                const distToEnemy = Math.hypot(enemy.x - x, enemy.y - y);
-                if (distToEnemy < 100 && enemy.type !== 'exploder') { // No encadenar explosiones infinitas
-                    enemy.health -= 10;
-                    if (enemy.health <= 0) {
-                        createParticles(enemy.x, enemy.y, enemy.color, 8);
-                        score += enemy.scoreValue;
-                        enemies.splice(i, 1);
-                        updateUI();
-                    }
-                }
-            }
+            // Actualizar tienda también
+            document.getElementById('shopCoinsDisplay').innerText = coins;
         }
-
-        function updateUI() {
-            scoreDisplay.innerText = score;
-            waveDisplay.innerText = wave;
-        }
-
+        
         function updateHealthUI() {
-            const percentage = Math.max(0, (player.health / player.maxHealth) * 100);
-            healthBarFill.style.width = `${percentage}%`;
-            if (percentage < 30) {
-                healthBarFill.classList.remove('bg-red-500');
-                healthBarFill.classList.add('bg-red-700', 'animate-pulse');
-            } else {
-                healthBarFill.classList.remove('bg-red-700', 'animate-pulse');
-                healthBarFill.classList.add('bg-red-500');
+            const hpPercent = Math.max(0, (player.health / player.maxHealth) * 100);
+            const healthBar = document.getElementById('healthBar');
+            healthBar.style.width = hpPercent + '%';
+            if (hpPercent > 50) healthBar.className = 'h-full bg-green-500 w-full transition-all duration-200';
+            else if (hpPercent > 20) healthBar.className = 'h-full bg-yellow-500 w-full transition-all duration-200';
+            else healthBar.className = 'h-full bg-red-600 w-full transition-all duration-200 animate-pulse';
+        }
+
+        function togglePause() {
+            if (!gameActive || isShopOpen) return;
+            isPaused = !isPaused;
+            if (isPaused) { cancelAnimationFrame(animationId); pauseScreen.classList.remove('hidden'); } 
+            else { pauseScreen.classList.add('hidden'); lastFired = Date.now(); animate(); }
+        }
+
+        function openShop() {
+            isShopOpen = true;
+            cancelAnimationFrame(animationId);
+            updateHUD();
+            
+            if(currentWeapon === 'ak47') {
+                document.getElementById('buyAKBtn').disabled = true;
+                document.getElementById('buyAKBtn').classList.replace('bg-blue-600', 'bg-gray-600');
+                document.getElementById('buyAKBtn').innerHTML = `<span>Equipado</span>`;
             }
+            
+            shopScreen.classList.remove('hidden');
+        }
+
+        function closeShop() {
+            isShopOpen = false;
+            shopScreen.classList.add('hidden');
+            lastFired = Date.now();
+            animate();
+        }
+
+        // Eventos de la Tienda
+        document.getElementById('buyDecoyBtn').addEventListener('click', () => {
+            if (coins >= 22) { coins -= 22; decoys++; updateHUD(); }
+        });
+        document.getElementById('buyAKBtn').addEventListener('click', () => {
+            if (coins >= 114 && currentWeapon !== 'ak47') { 
+                coins -= 114; currentWeapon = 'ak47'; updateHUD(); 
+                document.getElementById('buyAKBtn').disabled = true;
+                document.getElementById('buyAKBtn').classList.replace('bg-blue-600', 'bg-gray-600');
+                document.getElementById('buyAKBtn').innerHTML = `<span>Equipado</span>`;
+            }
+        });
+        document.getElementById('closeShopBtn').addEventListener('click', closeShop);
+
+        function initGame() {
+            customNames.player = document.getElementById('namePlayer').value || 'Jugador';
+            customNames.runner = document.getElementById('nameRunner').value || 'Runner';
+            customNames.exploder = document.getElementById('nameExploder').value || 'Exploder';
+            customNames.spitter = document.getElementById('nameSpitter').value || 'Spitter';
+            customNames.tank = document.getElementById('nameTank').value || 'Tanque';
+
+            player = new Player();
+            bullets = []; enemies = []; particles = []; explosions = []; spitProjectiles = []; puddles = []; trees = []; rocks = []; obstacles = []; groundCoins = []; activeDecoys = [];
+            score = 0; wave = 1; coins = 0; decoys = 0; currentWeapon = 'pistola'; frameCount = 0; waveAnnounceTimer = 180; 
+            currentShopZone = null;
+
+            generateBackground();
+
+            for(let i = 0; i < 6; i++) rocks.push(new Rock(Math.random() * width, Math.random() * height));
+            for(let i = 0; i < 12; i++) trees.push(new Tree(Math.random() * width, Math.random() * height));
+            obstacles = [...trees, ...rocks];
+            
+            for (let key in keys) keys[key] = false;
+            mouse.isDown = false;
+            gameActive = true; isPaused = false; isShopOpen = false;
+            
+            startScreen.classList.add('hidden'); gameOverScreen.classList.add('hidden'); pauseScreen.classList.add('hidden'); shopScreen.classList.add('hidden'); 
+            hud.classList.remove('hidden');
+            
+            document.getElementById('buyAKBtn').disabled = false;
+            document.getElementById('buyAKBtn').classList.replace('bg-gray-600', 'bg-blue-600');
+            document.getElementById('buyAKBtn').innerHTML = `<span>Comprar</span> <span class="bg-blue-800 px-2 py-1 rounded text-sm">114 <span class="coin-icon">$</span></span>`;
+
+            updateHUD(); updateHealthUI(); animate();
         }
 
         function animate() {
-            if (!gameActive) return;
+            if (!gameActive || isPaused || isShopOpen) return;
             animationId = requestAnimationFrame(animate);
             frameCount++;
 
-            ctx.fillStyle = 'rgba(17, 24, 39, 0.4)'; // Slight trail effect
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(bgCanvas, 0, 0);
 
-            // Handle continuous shooting
-            if (mouse.isDown && Date.now() - lastFired > 150) {
-                const angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
-                
-                // Disparo desde la punta del arma (aproximado)
-                const gunX = player.x + Math.cos(angle) * 30;
-                const gunY = player.y + Math.sin(angle) * 30;
-                
-                bullets.push(new Bullet(gunX, gunY, angle));
-                lastFired = Date.now();
+            // Actualizar Charcos de Ácido
+            for (let i = puddles.length - 1; i >= 0; i--) {
+                puddles[i].update();
+                if (Math.hypot(player.x - puddles[i].x, player.y - puddles[i].y) < puddles[i].radius + player.radius) {
+                    puddles[i].damageTimer++;
+                    if (puddles[i].damageTimer % 15 === 0) { player.health -= 2; updateHealthUI(); ctx.fillStyle = 'rgba(255,0,0,0.3)'; ctx.fillRect(0,0,width,height); }
+                }
+                if (puddles[i].life <= 0) puddles.splice(i, 1);
+            }
+
+            // Zona de Tienda (si existe)
+            if (currentShopZone) {
+                if (currentShopZone.update()) currentShopZone = null; 
+            }
+
+            // Obstáculos Sólidos
+            rocks.forEach(rock => rock.draw());
+            trees.forEach(tree => tree.drawBase());
+
+            // Monedas en el suelo
+            for (let i = groundCoins.length - 1; i >= 0; i--) {
+                if (groundCoins[i].update()) groundCoins.splice(i, 1);
+            }
+
+            // Señuelos Activos
+            for (let i = activeDecoys.length - 1; i >= 0; i--) {
+                if (activeDecoys[i].update()) {
+                    explosions.push(new Explosion(activeDecoys[i].x, activeDecoys[i].y, true)); // True para explosión gigante
+                    activeDecoys.splice(i, 1);
+                }
+            }
+
+            // Disparo del Jugador
+            let currentCooldown = currentWeapon === 'ak47' ? 100 : 200;
+            if (mouse.isDown && Date.now() - lastFired > currentCooldown) {
+                currentCooldown = fireBullet(); 
+            }
+
+            // Explosiones
+            for (let i = explosions.length - 1; i >= 0; i--) {
+                let exp = explosions[i]; exp.update();
+                if (exp.alpha > 0.6) {
+                    // Daño al jugador
+                    if (Math.hypot(player.x - exp.x, player.y - exp.y) < exp.radius + player.radius && !exp.playerDamaged) {
+                        player.health -= exp.damage; updateHealthUI(); ctx.fillStyle = 'rgba(255,0,0,0.6)'; ctx.fillRect(0,0,width,height); exp.playerDamaged = true; 
+                    }
+                    // Daño a los zombies (Reacción en cadena)
+                    for (let j = enemies.length - 1; j >= 0; j--) {
+                        let enemy = enemies[j];
+                        if (exp.enemiesDamaged.has(enemy)) continue; 
+                        if (Math.hypot(enemy.x - exp.x, enemy.y - exp.y) < exp.radius + enemy.radius) {
+                            enemy.health -= exp.damage; exp.enemiesDamaged.add(enemy);
+                            if (enemy.health <= 0) {
+                                createParticles(enemy.x, enemy.y, enemy.color, 15); spawnCoinDrop(enemy); score += enemy.scoreValue; updateHUD();
+                                if (enemy.type === 'exploder') explosions.push(new Explosion(enemy.x, enemy.y)); 
+                                enemies.splice(j, 1);
+                            }
+                        }
+                    }
+                }
+                if (exp.alpha <= 0) explosions.splice(i, 1);
+            }
+
+            // Proyectiles venenosos
+            for (let i = spitProjectiles.length - 1; i >= 0; i--) {
+                if (spitProjectiles[i].update()) {
+                    puddles.push(new Puddle(spitProjectiles[i].x, spitProjectiles[i].y));
+                    createParticles(spitProjectiles[i].x, spitProjectiles[i].y, '#a855f7', 10); spitProjectiles.splice(i, 1);
+                }
+            }
+
+            // Partículas
+            for (let i = particles.length - 1; i >= 0; i--) { particles[i].update(); if (particles[i].alpha <= 0) particles.splice(i, 1); }
+
+            // Balas y Colisiones
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                bullets[i].update();
+                let hitObs = false;
+                for(let obs of obstacles) {
+                    if (Math.hypot(bullets[i].x - obs.x, bullets[i].y - obs.y) < bullets[i].radius + obs.collisionRadius) {
+                        let hitColor = obs instanceof Rock ? '#71717a' : '#8B4513';
+                        createParticles(bullets[i].x, bullets[i].y, hitColor, 5); hitObs = true; break;
+                    }
+                }
+                if (hitObs || bullets[i].life <= 0) { bullets.splice(i, 1); continue; }
+            }
+
+            // Comportamiento de Zombies y Colisión con Balas
+            for (let i = enemies.length - 1; i >= 0; i--) {
+                let enemy = enemies[i]; enemy.update();
+                if (Math.hypot(player.x - enemy.x, player.y - enemy.y) < player.radius + enemy.radius) {
+                    if (enemy.type === 'exploder') { explosions.push(new Explosion(enemy.x, enemy.y)); enemies.splice(i, 1); continue; } 
+                    else { player.health -= (enemy.type === 'tank' ? 2 : (enemy.type === 'fast' ? 0.5 : 1)); updateHealthUI(); ctx.fillStyle = 'rgba(255, 0, 0, 0.2)'; ctx.fillRect(0, 0, width, height); }
+                }
+
+                for (let j = bullets.length - 1; j >= 0; j--) {
+                    let bullet = bullets[j];
+                    if (Math.hypot(bullet.x - enemy.x, bullet.y - enemy.y) < enemy.radius + bullet.radius) {
+                        enemy.health -= 1; createParticles(bullet.x, bullet.y, enemy.color, 5); bullets.splice(j, 1);
+                        if (enemy.type !== 'tank') { enemy.x += bullet.velocity.x * 0.3; enemy.y += bullet.velocity.y * 0.3; }
+                        if (enemy.health <= 0) {
+                            createParticles(enemy.x, enemy.y, enemy.color, 15); spawnCoinDrop(enemy); score += enemy.scoreValue; updateHUD();
+                            if (enemy.type === 'exploder') explosions.push(new Explosion(enemy.x, enemy.y));
+                            enemies.splice(i, 1);
+                        }
+                        break;
+                    }
+                }
             }
 
             player.update();
 
-            // Puddles (Acid)
-            for (let i = puddles.length - 1; i >= 0; i--) {
-                const puddle = puddles[i];
-                puddle.update();
+            // Copas de árboles por encima
+            trees.forEach(tree => tree.drawCanopy());
+
+            // Tasa de aparición de enemigos
+            if (frameCount % Math.max(30, 100 - (wave * 5)) === 0) spawnEnemy();
+
+            // Progresión de oleadas y lógica de Tienda
+            if (score > wave * 300) { 
+                wave++; 
+                player.health = Math.min(player.maxHealth, player.health + 25); 
+                updateHUD(); updateHealthUI(); waveAnnounceTimer = 180; 
                 
-                // Daño al jugador si pisa
-                const distToPlayer = Math.hypot(player.x - puddle.x, player.y - puddle.y);
-                if (distToPlayer < puddle.radius + player.radius) {
-                    player.health -= puddle.damage;
-                    updateHealthUI();
-                }
-
-                if (puddle.lifeTime <= 0) puddles.splice(i, 1);
-            }
-
-            // Explosions
-            for (let i = explosions.length - 1; i >= 0; i--) {
-                const exp = explosions[i];
-                exp.update();
-                if (exp.alpha <= 0) explosions.splice(i, 1);
-            }
-
-            // Spit Projectiles
-            for (let i = spitProjectiles.length - 1; i >= 0; i--) {
-                const p = spitProjectiles[i];
-                p.update();
-                if (p.distanceTraveled >= p.maxDistance || 
-                    p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) {
-                    puddles.push(new Puddle(p.x, p.y));
-                    spitProjectiles.splice(i, 1);
+                // Tienda cada 2 oleadas (comienza en la oleada 3, luego 5, 7...)
+                if (wave % 2 !== 0 && wave > 1) {
+                    currentShopZone = new ShopZone();
                 }
             }
 
-            // Particles
-            for (let i = particles.length - 1; i >= 0; i--) {
-                const p = particles[i];
-                p.update();
-                if (p.alpha <= 0) particles.splice(i, 1);
+            if (waveAnnounceTimer > 0) {
+                ctx.save(); ctx.fillStyle = `rgba(255, 255, 255, ${waveAnnounceTimer / 180})`;
+                ctx.font = 'bold 80px "Roboto Mono"'; ctx.textAlign = 'center'; ctx.shadowColor = 'rgba(0, 0, 0, 0.9)'; ctx.shadowBlur = 15;
+                ctx.fillText(`OLEADA ${wave}`, canvas.width/2, canvas.height / 2); ctx.restore();
+                waveAnnounceTimer--;
             }
 
-            // Bullets
-            for (let i = bullets.length - 1; i >= 0; i--) {
-                const bullet = bullets[i];
-                bullet.update();
-
-                // Remove off-screen bullets
-                if (bullet.x < 0 || bullet.x > canvas.width || bullet.y < 0 || bullet.y > canvas.height) {
-                    bullets.splice(i, 1);
-                    continue;
-                }
-
-                // Enemy collision
-                for (let j = enemies.length - 1; j >= 0; j--) {
-                    const enemy = enemies[j];
-                    const dist = Math.hypot(bullet.x - enemy.x, bullet.y - enemy.y);
-
-                    if (dist - enemy.radius - bullet.radius < 0) {
-                        createParticles(bullet.x, bullet.y, enemy.color, 3);
-                        enemy.health -= bullet.damage;
-                        bullets.splice(i, 1); // Remove bullet
-
-                        if (enemy.health <= 0) {
-                            if (enemy.type === 'exploder') {
-                                triggerExplosion(enemy.x, enemy.y);
-                            }
-                            createParticles(enemy.x, enemy.y, enemy.color, 15);
-                            score += enemy.scoreValue;
-                            enemies.splice(j, 1);
-                            updateUI();
-                        }
-                        break; // Bullet already hit, stop checking enemies
-                    }
-                }
-            }
-
-            // Enemies
-            for (let i = enemies.length - 1; i >= 0; i--) {
-                const enemy = enemies[i];
-                enemy.update();
-
-                // Player collision
-                const dist = Math.hypot(player.x - enemy.x, player.y - enemy.y);
-                if (dist - enemy.radius - player.radius < 0) {
-                    if (enemy.type === 'exploder') {
-                        triggerExplosion(enemy.x, enemy.y);
-                        enemies.splice(i, 1); // El exploder muere al tocar al jugador
-                    } else {
-                        player.health -= enemy.damage * 0.1; // Continuous damage on touch
-                    }
-                    updateHealthUI();
-                }
-            }
-
-            // Wave logic
-            if (frameCount % Math.max(30, 100 - (wave * 5)) === 0) {
-                spawnEnemy();
-            }
-
-            if (score > wave * 300) { // Subir de oleada
-                wave++;
-                player.health = Math.min(player.maxHealth, player.health + 20); // Heal per wave
-                updateUI();
-                updateHealthUI();
-                
-                // Wave announce effect (Simple text)
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-                ctx.font = 'bold 40px "Roboto Mono"';
-                ctx.textAlign = 'center';
-                ctx.fillText(`OLEADA ${wave}`, canvas.width/2, 100);
-            }
-
-            // Game Over
             if (player.health <= 0) {
-                gameActive = false;
-                cancelAnimationFrame(animationId);
-                showGameOver();
+                gameActive = false; hud.classList.add('hidden'); joystickZone.style.display = 'none'; shootBtn.style.display = 'none'; decoyBtn.style.display = 'none';
+                document.getElementById('finalScore').innerText = score; document.getElementById('finalWave').innerText = wave;
+                gameOverScreen.classList.remove('hidden');
             }
         }
 
-        function initGame() {
-            player = new Player();
-            bullets = [];
-            enemies = [];
-            particles = [];
-            explosions = [];
-            spitProjectiles = [];
-            puddles = [];
-            
-            score = 0;
-            wave = 1;
-            frameCount = 0;
-            
-            // Reset keys and joystick
-            for (let key in keys) keys[key] = false;
-            resetJoystick();
-            mouse.isDown = false;
-
-            updateUI();
-            updateHealthUI();
-        }
-
-        function startGame() {
-            // Obtener nombres personalizados
-            customNames.player = inputPlayerName.value.trim().toUpperCase() || 'JUGADOR';
-            customNames.exploder = inputExploderName.value.trim().toUpperCase() || 'EXPLODER';
-            customNames.spitter = inputSpitterName.value.trim().toUpperCase() || 'SPITTER';
-            customNames.tank = inputTankName.value.trim().toUpperCase() || 'TANQUE';
-
-            startScreen.classList.add('hidden');
-            gameOverScreen.classList.add('hidden');
-            pauseScreen.classList.add('hidden');
-            
-            initGame();
-            gameActive = true;
-            isPaused = false;
-            
-            if(isMobile) {
-                movementJoystick.style.display = 'block';
-                shootBtn.style.display = 'block';
-            }
-            animate();
-        }
-
-        function showGameOver() {
-            finalScore.innerText = score;
-            finalWave.innerText = wave;
-            gameOverScreen.classList.remove('hidden');
-            
-            // Reset mobile states
-            mouse.isDown = false;
-            if(isMobile){
-                movementJoystick.style.display = 'none';
-                shootBtn.style.display = 'none';
-                shootBtn.style.background = 'rgba(239, 68, 68, 0.5)';
-            }
-        }
-
-        function togglePause() {
-            if (!gameActive) return;
-            isPaused = !isPaused;
-            
-            if (isPaused) {
-                cancelAnimationFrame(animationId);
-                pauseScreen.classList.remove('hidden');
-                if (isMobile) {
-                    movementJoystick.style.display = 'none';
-                    shootBtn.style.display = 'none';
-                }
-            } else {
-                pauseScreen.classList.add('hidden');
-                lastFired = Date.now(); // Prevenir disparo instantáneo al quitar la pausa
-                
-                // Sincronizar el ataque de los spitters para que no disparen todos de golpe al despausar
-                for (let enemy of enemies) {
-                    if (enemy.type === 'spitter') {
-                        enemy.lastShot = Date.now() + Math.random() * 1000;
-                    }
-                }
-                
-                if (isMobile) {
-                    movementJoystick.style.display = 'block';
-                    shootBtn.style.display = 'block';
-                }
-                animate();
-            }
-        }
-
-        pauseBtnUI.addEventListener('click', togglePause);
-        resumeBtn.addEventListener('click', togglePause);
-        quitBtn.addEventListener('click', () => {
-            gameActive = false;
-            isPaused = false;
-            pauseScreen.classList.add('hidden');
+        // Listeners de los menús
+        document.getElementById('startBtn').addEventListener('click', initGame);
+        document.getElementById('restartBtn').addEventListener('click', () => { gameOverScreen.classList.add('hidden'); startScreen.classList.remove('hidden'); });
+        document.getElementById('pauseBtnHud').addEventListener('click', togglePause);
+        document.getElementById('resumeBtn').addEventListener('click', togglePause);
+        document.getElementById('quitBtn').addEventListener('click', () => {
+            isPaused = false; gameActive = false; cancelAnimationFrame(animationId); pauseScreen.classList.add('hidden');
+            hud.classList.add('hidden'); joystickZone.style.display = 'none'; shootBtn.style.display = 'none'; decoyBtn.style.display = 'none';
             startScreen.classList.remove('hidden');
-            if (isMobile) {
-                movementJoystick.style.display = 'none';
-                shootBtn.style.display = 'none';
-            }
         });
-
-        document.getElementById('startBtn').addEventListener('click', startGame);
-        document.getElementById('restartBtn').addEventListener('click', startGame);
-
     </script>
 </body>
 </html>
