@@ -34,6 +34,13 @@
         }
         #decoy-btn:active { background: rgba(234, 179, 8, 0.9); transform: scale(0.95); }
 
+        #medkit-btn {
+            position: absolute; bottom: 200px; right: 40px; width: 60px; height: 60px;
+            background: rgba(34, 197, 94, 0.6); border-radius: 50%; display: none;
+            border: 2px solid rgba(255, 255, 255, 0.5); touch-action: none;
+        }
+        #medkit-btn:active { background: rgba(34, 197, 94, 0.9); transform: scale(0.95); }
+
         .coin-icon { color: #fbbf24; text-shadow: 0 0 5px #d97706; }
     </style>
 </head>
@@ -73,29 +80,53 @@
     </div>
 
     <!-- Menú de la Tienda -->
-    <div id="shopScreen" class="absolute inset-0 flex flex-col items-center justify-center bg-blue-900 bg-opacity-90 z-50 hidden backdrop-blur-sm">
+    <div id="shopScreen" class="absolute inset-0 flex flex-col items-center justify-center bg-blue-900 bg-opacity-90 z-50 hidden backdrop-blur-sm overflow-y-auto py-6">
         <h2 class="text-5xl text-yellow-400 font-bold mb-2 tracking-widest drop-shadow-md">TIENDA</h2>
-        <p class="text-xl text-white mb-8">Tienes: <span id="shopCoinsDisplay" class="font-bold text-yellow-400">0</span> Monedas</p>
+        <p class="text-xl text-white mb-6">Tienes: <span id="shopCoinsDisplay" class="font-bold text-yellow-400">0</span> Monedas</p>
         
-        <div class="space-y-4 flex flex-col w-80 max-w-[90%]">
-            <div class="bg-gray-800 border-2 border-gray-600 p-4 rounded-lg flex flex-col items-center">
-                <h3 class="text-yellow-400 font-bold text-lg mb-1">Señuelo Explosivo</h3>
-                <p class="text-sm text-gray-300 text-center mb-3">Atrae a los zombies y luego explota.</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl w-full px-4">
+            <div class="bg-gray-800 border-2 border-gray-600 p-4 rounded-lg flex flex-col justify-between items-center text-center">
+                <div>
+                    <h3 class="text-yellow-400 font-bold text-lg mb-1">Señuelo Explosivo</h3>
+                    <p class="text-sm text-gray-300 mb-3">Atrae a los zombies y luego explota.</p>
+                </div>
                 <button id="buyDecoyBtn" class="w-full px-4 py-2 bg-yellow-600 hover:bg-yellow-500 text-white font-bold rounded shadow transition-colors flex justify-between items-center">
                     <span>Comprar</span> <span class="bg-yellow-800 px-2 py-1 rounded text-sm">22 <span class="coin-icon">$</span></span>
                 </button>
             </div>
 
-            <div class="bg-gray-800 border-2 border-gray-600 p-4 rounded-lg flex flex-col items-center">
-                <h3 class="text-blue-400 font-bold text-lg mb-1">Rifle AK-47</h3>
-                <p class="text-sm text-gray-300 text-center mb-3">Disparo rápido, dispersión ligera.</p>
+            <div class="bg-gray-800 border-2 border-gray-600 p-4 rounded-lg flex flex-col justify-between items-center text-center">
+                <div>
+                    <h3 class="text-blue-400 font-bold text-lg mb-1">Rifle AK-47</h3>
+                    <p class="text-sm text-gray-300 mb-3">Disparo rápido, dispersión ligera.</p>
+                </div>
                 <button id="buyAKBtn" class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded shadow transition-colors flex justify-between items-center">
                     <span>Comprar</span> <span class="bg-blue-800 px-2 py-1 rounded text-sm">114 <span class="coin-icon">$</span></span>
                 </button>
             </div>
 
-            <button id="closeShopBtn" class="w-full px-6 py-3 mt-4 bg-gray-200 hover:bg-white text-black font-bold text-xl rounded shadow transition-colors">Salir de la Tienda</button>
+            <div class="bg-gray-800 border-2 border-gray-600 p-4 rounded-lg flex flex-col justify-between items-center text-center">
+                <div>
+                    <h3 class="text-red-400 font-bold text-lg mb-1">Escopeta</h3>
+                    <p class="text-sm text-gray-300 mb-3">Dispara 11 perdigones simultáneos con gran dispersión.</p>
+                </div>
+                <button id="buyShotgunBtn" class="w-full px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-bold rounded shadow transition-colors flex justify-between items-center">
+                    <span>Comprar</span> <span class="bg-red-800 px-2 py-1 rounded text-sm">86 <span class="coin-icon">$</span></span>
+                </button>
+            </div>
+
+            <div class="bg-gray-800 border-2 border-gray-600 p-4 rounded-lg flex flex-col justify-between items-center text-center">
+                <div>
+                    <h3 class="text-green-400 font-bold text-lg mb-1">Botiquín</h3>
+                    <p class="text-sm text-gray-300 mb-3">Cura 40 de vida. Requiere 5s de espera.</p>
+                </div>
+                <button id="buyMedkitBtn" class="w-full px-4 py-2 bg-green-600 hover:bg-green-500 text-white font-bold rounded shadow transition-colors flex justify-between items-center">
+                    <span>Comprar</span> <span class="bg-green-800 px-2 py-1 rounded text-sm">47 <span class="coin-icon">$</span></span>
+                </button>
+            </div>
         </div>
+
+        <button id="closeShopBtn" class="w-80 max-w-[90%] px-6 py-3 mt-6 bg-gray-200 hover:bg-white text-black font-bold text-xl rounded shadow transition-colors">Salir de la Tienda</button>
     </div>
 
     <!-- Menú de Pausa -->
@@ -129,11 +160,22 @@
                 <div class="bg-gray-800 bg-opacity-70 border border-gray-600 px-3 py-1 rounded text-sm text-gray-200 flex items-center gap-2">
                     <span class="text-yellow-400">Señuelos (E):</span> <span id="decoyDisplay" class="font-bold text-lg">0</span>
                 </div>
+                <div class="bg-gray-800 bg-opacity-70 border border-gray-600 px-3 py-1 rounded text-sm text-gray-200 flex items-center gap-2">
+                    <span class="text-green-400">Botiquines (Q):</span> <span id="medkitDisplay" class="font-bold text-lg">0</span>
+                </div>
+                <!-- Indicador de canalización de curación (5s) -->
+                <div id="healingProgressContainer" class="hidden bg-gray-800 bg-opacity-90 border border-green-500 px-3 py-1.5 rounded text-xs text-green-400 font-bold flex flex-col items-center">
+                    <span id="healingText">Curando: 5.0s</span>
+                    <div class="w-full bg-gray-700 h-2 rounded overflow-hidden mt-1 border border-gray-600">
+                        <div id="healingBar" class="bg-green-500 h-full w-0 transition-all duration-75"></div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="flex items-center gap-4 pointer-events-auto">
-            <div class="w-32 md:w-48 h-6 bg-gray-800 border-2 border-gray-600 rounded overflow-hidden">
-                <div id="healthBar" class="h-full bg-green-500 w-full transition-all duration-200"></div>
+            <div class="w-32 md:w-48 h-6 bg-gray-800 border-2 border-gray-600 rounded overflow-hidden relative">
+                <div id="healthBar" class="h-full bg-green-500 w-full transition-all duration-200 absolute top-0 left-0 z-0"></div>
+                <div id="healthText" class="absolute inset-0 flex items-center justify-center text-xs font-bold text-white z-10" style="text-shadow: 1px 1px 2px black;">100 / 100</div>
             </div>
             <button id="pauseBtnHud" class="w-10 h-10 bg-gray-800 border-2 border-gray-600 text-white rounded hover:bg-gray-700 flex items-center justify-center cursor-pointer shadow">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 3.5A1.5 1.5 0 0 1 7 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5zm5 0A1.5 1.5 0 0 1 12 5v6a1.5 1.5 0 0 1-3 0V5a1.5 1.5 0 0 1 1.5-1.5z"/></svg>
@@ -145,6 +187,7 @@
     <div id="joystick-zone"><div id="joystick-knob"></div></div>
     <div id="shoot-btn"></div>
     <div id="decoy-btn" class="flex items-center justify-center font-bold text-white text-xl">💣</div>
+    <div id="medkit-btn" class="flex items-center justify-center font-bold text-white text-xl">➕</div>
 
     <canvas id="gameCanvas"></canvas>
 
@@ -152,6 +195,381 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioCtx();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+        window.addEventListener('click', initAudio);
+        window.addEventListener('keydown', initAudio);
+        window.addEventListener('touchstart', initAudio);
+
+        // Curva de distorsión analógica / saturación para dar calidez y peso cinematográfico
+        function createSaturationCurve(amount = 20) {
+            const n_samples = 44100;
+            const curve = new Float32Array(n_samples);
+            for (let i = 0; i < n_samples; ++i) {
+                const x = (i * 2) / n_samples - 1;
+                curve[i] = Math.tanh(x * (amount / 10));
+            }
+            return curve;
+        }
+
+        // Motor de Audio Procedural Avanzado - Efectos Cinematográficos y Ultra Realistas
+        function playShootSound(type) {
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+
+            // Saturador principal para resonancia real
+            const saturator = audioCtx.createWaveShaper();
+            saturator.curve = createSaturationCurve(15);
+            saturator.connect(audioCtx.destination);
+
+            if (type === 'pistola') {
+                // 1. Golpe Mecánico (Corredera / Percutor)
+                const clickOsc = audioCtx.createOscillator();
+                const clickGain = audioCtx.createGain();
+                clickOsc.type = 'sine';
+                clickOsc.frequency.setValueAtTime(2400, now);
+                clickOsc.frequency.exponentialRampToValueAtTime(120, now + 0.015);
+                clickGain.gain.setValueAtTime(0.6, now);
+                clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.015);
+                clickOsc.connect(clickGain);
+                clickGain.connect(saturator);
+                clickOsc.start(now); clickOsc.stop(now + 0.015);
+
+                // 2. Disparo de Calibre 9mm (Cuerpo y Sub-impacto)
+                const bodyOsc = audioCtx.createOscillator();
+                const bodyGain = audioCtx.createGain();
+                bodyOsc.type = 'triangle';
+                bodyOsc.frequency.setValueAtTime(320, now);
+                bodyOsc.frequency.exponentialRampToValueAtTime(45, now + 0.08);
+                bodyGain.gain.setValueAtTime(0.7, now);
+                bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                bodyOsc.connect(bodyGain);
+                bodyGain.connect(saturator);
+                bodyOsc.start(now); bodyOsc.stop(now + 0.08);
+
+                // 3. Explosión de Pólvora y Eco de Entorno
+                const bufSize = audioCtx.sampleRate * 0.12;
+                const buffer = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1);
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(3500, now);
+                filter.frequency.exponentialRampToValueAtTime(250, now + 0.12);
+
+                const noiseGain = audioCtx.createGain();
+                noiseGain.gain.setValueAtTime(0.5, now);
+                noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+                noise.connect(filter); filter.connect(noiseGain); noiseGain.connect(saturator);
+                noise.start(now);
+
+            } else if (type === 'ak47') {
+                // 1. Golpe de Recámara de Fusil de Asalto (Chasis metálico)
+                const mech = audioCtx.createOscillator();
+                const mechGain = audioCtx.createGain();
+                mech.type = 'sawtooth';
+                mech.frequency.setValueAtTime(1800, now);
+                mech.frequency.exponentialRampToValueAtTime(300, now + 0.02);
+                mechGain.gain.setValueAtTime(0.5, now);
+                mechGain.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
+                mech.connect(mechGain); mechGain.connect(saturator);
+                mech.start(now); mech.stop(now + 0.02);
+
+                // 2. Detonación Pesada Calibre 7.62mm
+                const coreOsc = audioCtx.createOscillator();
+                const coreGain = audioCtx.createGain();
+                coreOsc.type = 'triangle';
+                coreOsc.frequency.setValueAtTime(480, now);
+                coreOsc.frequency.exponentialRampToValueAtTime(35, now + 0.14);
+                coreGain.gain.setValueAtTime(0.85, now);
+                coreGain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+                coreOsc.connect(coreGain); coreGain.connect(saturator);
+                coreOsc.start(now); coreOsc.stop(now + 0.14);
+
+                // 3. Estruendo del Cañón y Resonancia
+                const bufSize = audioCtx.sampleRate * 0.16;
+                const buffer = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1);
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+
+                const bandpass = audioCtx.createBiquadFilter();
+                bandpass.type = 'bandpass';
+                bandpass.frequency.setValueAtTime(2200, now);
+                bandpass.Q.value = 1.2;
+
+                const noiseGain = audioCtx.createGain();
+                noiseGain.gain.setValueAtTime(0.65, now);
+                noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+
+                noise.connect(bandpass); bandpass.connect(noiseGain); noiseGain.connect(saturator);
+                noise.start(now);
+
+            } else if (type === 'escopeta') {
+                // 1. Golpe Sub-grave masivo de cartucho de perdigones Calibre 12
+                const subOsc = audioCtx.createOscillator();
+                const subGain = audioCtx.createGain();
+                subOsc.type = 'sine';
+                subOsc.frequency.setValueAtTime(250, now);
+                subOsc.frequency.exponentialRampToValueAtTime(20, now + 0.35);
+                subGain.gain.setValueAtTime(1.0, now);
+                subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+                subOsc.connect(subGain); subGain.connect(saturator);
+                subOsc.start(now); subOsc.stop(now + 0.35);
+
+                // 2. Ruido Caótico de Dispersión Múltiple y Expansión
+                const bufSize = audioCtx.sampleRate * 0.3;
+                const buffer = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufSize; i++) data[i] = (Math.random() * 2 - 1);
+                const noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(4000, now);
+                filter.frequency.exponentialRampToValueAtTime(120, now + 0.3);
+
+                const noiseGain = audioCtx.createGain();
+                noiseGain.gain.setValueAtTime(0.9, now);
+                noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+
+                noise.connect(filter); filter.connect(noiseGain); noiseGain.connect(saturator);
+                noise.start(now);
+            }
+        }
+
+        function playMedkitSound() {
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+            
+            // Fricción orgánica de tela y venda sintética
+            const bufSize = audioCtx.sampleRate * 0.15;
+            const buffer = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufSize; i++) {
+                data[i] = (Math.random() * 2 - 1) * Math.sin(i * 0.08);
+            }
+
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.setValueAtTime(1800 + Math.random() * 400, now);
+            filter.Q.value = 3.0;
+
+            const gain = audioCtx.createGain();
+            gain.gain.setValueAtTime(0.3, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+
+            // Tono resplandeciente de regeneración
+            const harmonic = audioCtx.createOscillator();
+            const harmGain = audioCtx.createGain();
+            harmonic.type = 'sine';
+            harmonic.frequency.setValueAtTime(523.25 + Math.random() * 100, now);
+            harmonic.frequency.exponentialRampToValueAtTime(659.25, now + 0.15);
+            harmGain.gain.setValueAtTime(0.08, now);
+            harmGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+            noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+            harmonic.connect(harmGain); harmGain.connect(audioCtx.destination);
+            noise.start(now); harmonic.start(now); harmonic.stop(now + 0.15);
+        }
+
+        function playDecoyBeep() {
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+            
+            // Radar táctico de alta frecuencia con barrido sinusoidal
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(2200, now);
+            osc.frequency.exponentialRampToValueAtTime(1800, now + 0.06);
+            
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+            
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(now); osc.stop(now + 0.06);
+        }
+
+        function playExplosionSound() {
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+            
+            const saturator = audioCtx.createWaveShaper();
+            saturator.curve = createSaturationCurve(30);
+            saturator.connect(audioCtx.destination);
+
+            // 1. Onda expansiva sub-grave (Sub-woofer thump)
+            const subOsc = audioCtx.createOscillator();
+            const subGain = audioCtx.createGain();
+            subOsc.type = 'sine';
+            subOsc.frequency.setValueAtTime(160, now);
+            subOsc.frequency.exponentialRampToValueAtTime(15, now + 0.7);
+            subGain.gain.setValueAtTime(1.0, now);
+            subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+            subOsc.connect(subGain); subGain.connect(saturator);
+            subOsc.start(now); subOsc.stop(now + 0.7);
+
+            // 2. Rugido de fuego y escombros (Noise filtrado dinámico)
+            const bufSize = audioCtx.sampleRate * 0.8;
+            const buffer = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+
+            const lowpass = audioCtx.createBiquadFilter();
+            lowpass.type = 'lowpass';
+            lowpass.frequency.setValueAtTime(1200, now);
+            lowpass.frequency.exponentialRampToValueAtTime(30, now + 0.8);
+
+            const noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(0.9, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+
+            noise.connect(lowpass); lowpass.connect(noiseGain); noiseGain.connect(saturator);
+            noise.start(now);
+        }
+
+        function playZombieGroan() {
+            if (!audioCtx || Math.random() > 0.4) return;
+            const now = audioCtx.currentTime;
+            const duration = 0.5 + Math.random() * 0.3;
+
+            // Síntesis de Formantes Vocales Humanas (Garganta Orgánica de Zombie)
+            const osc1 = audioCtx.createOscillator();
+            const osc2 = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc1.type = 'sawtooth';
+            osc2.type = 'sawtooth';
+
+            const pitch = 55 + Math.random() * 25; // Tono grave gutural (A1-D2)
+            osc1.frequency.setValueAtTime(pitch, now);
+            osc1.frequency.linearRampToValueAtTime(pitch - 15, now + duration);
+            
+            // LFO de Modulación / Vibrato irregular de cuerdas vocales descompuestas
+            osc2.frequency.setValueAtTime(pitch * 1.03, now);
+            osc2.frequency.linearRampToValueAtTime((pitch - 15) * 1.02, now + duration);
+
+            // Filtro de Formante F1 y F2 (Cavidad vocal y boca)
+            const formantF1 = audioCtx.createBiquadFilter();
+            formantF1.type = 'bandpass';
+            formantF1.frequency.setValueAtTime(500, now);
+            formantF1.Q.value = 4.0;
+
+            const formantF2 = audioCtx.createBiquadFilter();
+            formantF2.type = 'bandpass';
+            formantF2.frequency.setValueAtTime(1100, now);
+            formantF2.Q.value = 5.0;
+
+            // Hálito de aire descompuesto (Ruido blanco raspado)
+            const bufSize = audioCtx.sampleRate * duration;
+            const buffer = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+            const breath = audioCtx.createBufferSource();
+            breath.buffer = buffer;
+            const breathFilter = audioCtx.createBiquadFilter();
+            breathFilter.type = 'lowpass';
+            breathFilter.frequency.setValueAtTime(700, now);
+            const breathGain = audioCtx.createGain();
+            breathGain.gain.setValueAtTime(0.08, now);
+            breathGain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+            gain.gain.setValueAtTime(0.22, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+            osc1.connect(formantF1); osc2.connect(formantF2);
+            formantF1.connect(gain); formantF2.connect(gain);
+            breath.connect(breathFilter); breathFilter.connect(breathGain); breathGain.connect(audioCtx.destination);
+            gain.connect(audioCtx.destination);
+
+            osc1.start(now); osc2.start(now); breath.start(now);
+            osc1.stop(now + duration); osc2.stop(now + duration);
+        }
+
+        function playZombieScream() {
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+            const duration = 0.4;
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(280 + Math.random() * 80, now);
+            osc.frequency.exponentialRampToValueAtTime(80, now + duration);
+
+            // Filtro de garganta desgarrada
+            const formant = audioCtx.createBiquadFilter();
+            formant.type = 'bandpass';
+            formant.frequency.setValueAtTime(1400, now);
+            formant.Q.value = 3.5;
+
+            gain.gain.setValueAtTime(0.3, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+            osc.connect(formant); formant.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(now); osc.stop(now + duration);
+        }
+
+        function playSpitSound() {
+            if (!audioCtx) return;
+            const now = audioCtx.currentTime;
+
+            // Proyección de fluido viscoso y ácido ("splat" biológico)
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(850, now);
+            osc.frequency.exponentialRampToValueAtTime(120, now + 0.18);
+            gain.gain.setValueAtTime(0.4, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+            // Burbujeo fluido
+            const bufSize = audioCtx.sampleRate * 0.15;
+            const buffer = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < bufSize; i++) {
+                data[i] = (Math.random() * 2 - 1) * (i % 200 < 50 ? 1 : 0.15);
+            }
+
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.setValueAtTime(1600, now);
+            filter.Q.value = 5;
+
+            const noiseGain = audioCtx.createGain();
+            noiseGain.gain.setValueAtTime(0.3, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            noise.connect(filter); filter.connect(noiseGain); noiseGain.connect(audioCtx.destination);
+            osc.start(now); osc.stop(now + 0.18);
+            noise.start(now);
+        }
+
         let width = canvas.width = window.innerWidth;
         let height = canvas.height = window.innerHeight;
 
@@ -184,6 +602,10 @@
         let wave = 1;
         let coins = 0;
         let decoys = 0;
+        let medkits = 0;
+        let isHealing = false;
+        let healingTimer = 0;
+        const MAX_HEAL_TIMER = 300; // 300 frames = 5 segundos @ 60 FPS
         let currentWeapon = 'pistola';
         let frameCount = 0;
         let waveAnnounceTimer = 0;
@@ -205,8 +627,7 @@
         let rocks = [];
         let obstacles = []; 
         let currentShopZone = null;
-
-        const keys = { w: false, a: false, s: false, d: false, e: false, ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
+        const keys = { w: false, a: false, s: false, d: false, e: false, q: false, ArrowUp: false, ArrowDown: false, ArrowLeft: false, ArrowRight: false };
         const mouse = { x: width / 2, y: height / 2, isDown: false };
         let joystickVector = { x: 0, y: 0 };
         let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || ('ontouchstart' in window);
@@ -217,6 +638,7 @@
             
             if (e.key === 'p' || e.key === 'P' || e.key === 'Escape') togglePause();
             if ((e.key === 'e' || e.key === 'E') && gameActive && !isPaused && !isShopOpen) useDecoy();
+            if ((e.key === 'q' || e.key === 'Q') && gameActive && !isPaused && !isShopOpen) useMedkit();
         });
         window.addEventListener('keyup', (e) => {
             if (keys.hasOwnProperty(e.key.toLowerCase())) keys[e.key.toLowerCase()] = false;
@@ -232,12 +654,14 @@
         const joystickKnob = document.getElementById('joystick-knob');
         const shootBtn = document.getElementById('shoot-btn');
         const decoyBtn = document.getElementById('decoy-btn');
+        const medkitBtn = document.getElementById('medkit-btn');
         let joyCenterX, joyCenterY, joyMaxRadius = 40;
 
         if (isMobile) {
             joystickZone.style.display = 'block';
             shootBtn.style.display = 'block';
             decoyBtn.style.display = 'flex';
+            medkitBtn.style.display = 'flex';
             
             joystickZone.addEventListener('touchstart', handleJoystickStart, {passive: false});
             joystickZone.addEventListener('touchmove', handleJoystickMove, {passive: false});
@@ -247,6 +671,7 @@
             shootBtn.addEventListener('touchend', (e) => { e.preventDefault(); mouse.isDown = false; });
             
             decoyBtn.addEventListener('touchstart', (e) => { e.preventDefault(); useDecoy(); });
+            medkitBtn.addEventListener('touchstart', (e) => { e.preventDefault(); useMedkit(); });
         }
 
         function handleJoystickStart(e) { e.preventDefault(); const rect = joystickZone.getBoundingClientRect(); joyCenterX = rect.left + rect.width / 2; joyCenterY = rect.top + rect.height / 2; updateJoystick(e.touches[0].clientX, e.touches[0].clientY); }
@@ -380,6 +805,7 @@
                 let beepCycle = this.life % 20;
                 if (beepCycle < 10) {
                     ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI*2); ctx.fillStyle = '#ef4444'; ctx.fill();
+                    if (beepCycle === 0) playDecoyBeep();
                 }
                 
                 // Ondas de sonido visuales
@@ -451,7 +877,8 @@
                 ctx.lineWidth = 2; ctx.strokeStyle = '#1d4ed8'; ctx.stroke();
 
                 ctx.fillStyle = '#93c5fd'; ctx.font = 'bold 12px "Roboto Mono"'; ctx.textAlign = 'center'; ctx.lineWidth = 2;
-                ctx.strokeStyle = '#000'; ctx.strokeText(customNames.player, this.x, this.y - this.radius - 8); ctx.fillText(customNames.player, this.x, this.y - this.radius - 8);
+                let nameY = this.y - this.radius - 8;
+                ctx.strokeStyle = '#000'; ctx.strokeText(customNames.player, this.x, nameY); ctx.fillText(customNames.player, this.x, nameY);
 
                 let angle;
                 if (isMobile && (joystickVector.x !== 0 || joystickVector.y !== 0)) angle = Math.atan2(joystickVector.y, joystickVector.x);
@@ -464,6 +891,9 @@
                 if (currentWeapon === 'ak47') {
                     ctx.lineTo(this.x + Math.cos(angle) * 35, this.y + Math.sin(angle) * 35);
                     ctx.lineWidth = 5; ctx.strokeStyle = '#4b5563'; // Más largo y gris oscuro
+                } else if (currentWeapon === 'escopeta') {
+                    ctx.lineTo(this.x + Math.cos(angle) * 30, this.y + Math.sin(angle) * 30);
+                    ctx.lineWidth = 8; ctx.strokeStyle = '#7f1d1d'; // Cañón ancho y oscuro de escopeta
                 } else {
                     ctx.lineTo(this.x + Math.cos(angle) * 25, this.y + Math.sin(angle) * 25);
                     ctx.lineWidth = 6; ctx.strokeStyle = '#94a3b8'; 
@@ -520,8 +950,9 @@
             constructor(x, y, isDecoy = false) {
                 this.x = x; this.y = y; this.radius = 0; 
                 this.maxRadius = isDecoy ? 150 : 100; // El señuelo hace una explosión más grande
-                this.alpha = 1; this.damage = 30; 
+                this.alpha = 1; this.damage = 10; 
                 this.playerDamaged = false; this.enemiesDamaged = new Set();
+                playExplosionSound();
             }
             draw() {
                 ctx.save(); ctx.globalAlpha = this.alpha; ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fillStyle = 'rgba(239, 68, 68, 0.7)'; ctx.fill();
@@ -557,39 +988,66 @@
                 this.x = x; this.y = y; this.type = type; this.spitCooldown = 0;
                 switch(type) {
                     case 'fast':
-                        this.radius = 12; this.color = '#f97316'; this.speed = Math.random() * 1.5 + 2.8;
-                        this.health = 1; this.scoreValue = 15; this.name = customNames.runner; break;
-                    case 'tank':
-                        this.radius = 28; this.color = '#14532d'; this.speed = Math.random() * 0.4 + 0.6; 
-                        this.health = 18; this.scoreValue = 50; this.name = customNames.tank; break;
-                    case 'exploder':
-                        this.radius = 16; this.color = '#ef4444'; this.speed = Math.random() * 1 + 1.2;
-                        this.health = 2; this.scoreValue = 20; this.name = customNames.exploder; break;
-                    case 'spitter':
-                        this.radius = 14; this.color = '#a855f7'; this.speed = Math.random() * 0.8 + 1;
-                        this.health = 3; this.scoreValue = 25; this.name = customNames.spitter; break;
-                    default: 
-                        this.radius = 15; this.color = '#22c55e'; this.speed = Math.random() * 1 + 1.2;
-                        this.health = 2; this.scoreValue = 10; this.name = ""; break;
-                }
+                    this.radius = 12; this.color = '#f97316'; this.speed = Math.random() * 1.5 + 2.8;
+                    this.health = 1; this.scoreValue = 15; this.name = customNames.runner; break;
+                case 'tank':
+                    this.radius = 28; this.color = '#14532d'; this.speed = Math.random() * 0.4 + 0.6; 
+                    this.health = 30; this.scoreValue = 50; this.name = customNames.tank; break;
+                case 'exploder':
+                    this.radius = 16; this.color = '#ef4444'; this.speed = Math.random() * 1 + 1.2;
+                    this.health = 2; this.scoreValue = 20; this.name = customNames.exploder; break;
+                case 'spitter':
+                    this.radius = 14; this.color = '#a855f7'; this.speed = Math.random() * 0.8 + 1;
+                    this.health = 3; this.scoreValue = 25; this.name = customNames.spitter; break;
+                default: 
+                    this.radius = 15; this.color = '#22c55e'; this.speed = Math.random() * 1 + 1.2;
+                    this.health = 2; this.scoreValue = 10; this.name = ""; break;
             }
-            draw(targetAngle) {
-                ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(targetAngle); ctx.lineCap = 'round';
-                
-                ctx.beginPath(); ctx.moveTo(0, -this.radius * 0.65); ctx.lineTo(this.radius + 6, -this.radius * 0.65); ctx.lineWidth = this.radius * 0.45 + 2; ctx.strokeStyle = '#000'; ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(0, this.radius * 0.65); ctx.lineTo(this.radius + 6, this.radius * 0.65); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(0, -this.radius * 0.65); ctx.lineTo(this.radius + 6, -this.radius * 0.65); ctx.lineWidth = this.radius * 0.45; ctx.strokeStyle = this.color; ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(0, this.radius * 0.65); ctx.lineTo(this.radius + 6, this.radius * 0.65); ctx.stroke();
-
-                ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#000'; ctx.stroke();
-                ctx.restore();
-
-                if (this.name !== "") {
-                    ctx.fillStyle = this.color; ctx.font = 'bold 11px "Roboto Mono"'; ctx.textAlign = 'center'; ctx.lineWidth = 2;
-                    ctx.strokeStyle = '#000'; ctx.strokeText(this.name, this.x, this.y - this.radius - 12); ctx.fillText(this.name, this.x, this.y - this.radius - 12);
-                }
+            this.maxHealth = this.health;
+        }
+        draw(targetAngle) {
+            ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(targetAngle); ctx.lineCap = 'round';
+            
+            // Destello / Aura de advertencia pulsante e irregular para el Zombie Explosivo
+            if (this.type === 'exploder') {
+                let pulse = (Math.sin(frameCount * 0.4) + Math.cos(frameCount * 0.95) * 0.7 + (Math.random() - 0.5) * 0.8) * 4 + 5;
+                ctx.beginPath(); ctx.arc(0, 0, this.radius + Math.max(2, pulse), 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(239, 68, 68, 0.55)'; ctx.fill();
+                ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(254, 202, 202, 0.9)'; ctx.stroke();
             }
-            update() {
+
+            ctx.beginPath(); ctx.moveTo(0, -this.radius * 0.65); ctx.lineTo(this.radius + 6, -this.radius * 0.65); ctx.lineWidth = this.radius * 0.45 + 2; ctx.strokeStyle = '#000'; ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, this.radius * 0.65); ctx.lineTo(this.radius + 6, this.radius * 0.65); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, -this.radius * 0.65); ctx.lineTo(this.radius + 6, -this.radius * 0.65); ctx.lineWidth = this.radius * 0.45; ctx.strokeStyle = this.color; ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, this.radius * 0.65); ctx.lineTo(this.radius + 6, this.radius * 0.65); ctx.stroke();
+
+            ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI * 2); ctx.fillStyle = this.color; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#000'; ctx.stroke();
+            ctx.restore();
+
+            // Dibujar nombre de zombis especiales
+            let hpY = this.y - this.radius - 8;
+            if (this.name !== "") {
+                ctx.fillStyle = this.color; ctx.font = 'bold 11px "Roboto Mono"'; ctx.textAlign = 'center'; ctx.lineWidth = 2;
+                ctx.strokeStyle = '#000'; ctx.strokeText(this.name, this.x, hpY - 10); ctx.fillText(this.name, this.x, hpY - 10);
+            }
+
+            // Dibujar barra de vida
+            let barWidth = this.radius * 2; 
+            let barHeight = 8;
+            let hpPercent = Math.max(0, this.health / this.maxHealth);
+            
+            ctx.fillStyle = '#7f1d1d'; // Fondo rojo de daño
+            ctx.fillRect(this.x - barWidth/2, hpY, barWidth, barHeight);
+            ctx.fillStyle = '#22c55e'; // Salud actual
+            ctx.fillRect(this.x - barWidth/2, hpY, barWidth * hpPercent, barHeight);
+            ctx.strokeStyle = '#000'; ctx.lineWidth = 1;
+            ctx.strokeRect(this.x - barWidth/2, hpY, barWidth, barHeight);
+            
+            // Números de vida
+            ctx.fillStyle = '#ffffff'; ctx.font = 'bold 8px "Roboto Mono"'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(Math.ceil(this.health), this.x, hpY + barHeight/2 + 0.5);
+        }
+        update() {
                 // Determinar el objetivo (Jugador o Señuelo activo más cercano)
                 let targetX = player.x;
                 let targetY = player.y;
@@ -611,6 +1069,7 @@
                     // Los Spitters prefieren escupirle al jugador si no hay señuelos
                     if (this.spitCooldown <= 0) {
                         spitProjectiles.push(new SpitProjectile(this.x, this.y, targetX, targetY));
+                        playSpitSound();
                         this.spitCooldown = 180; 
                     }
                 } else {
@@ -647,10 +1106,12 @@
             } else if (wave === 2) {
                 type = rand < 0.3 ? 'fast' : 'normal';
             } else {
-                if (rand < 0.10) type = 'tank'; 
-                else if (rand < 0.50) type = 'exploder'; 
-                else if (rand < 0.90) type = 'spitter';
-                else type = 'fast'; 
+                // A partir de la oleada 3 en adelante: El Tanque tiene 2% de probabilidad
+                if (rand < 0.02) type = 'tank';          // 2% Tanque
+                else if (rand < 0.40) type = 'normal';   // 38% Normal
+                else if (rand < 0.60) type = 'exploder'; // 20% Explosivo
+                else if (rand < 0.80) type = 'spitter';  // 20% Escupidor
+                else type = 'fast';                       // 20% Runner
             }
             enemies.push(new Enemy(x, y, type));
         }
@@ -661,20 +1122,39 @@
         }
 
         function fireBullet() {
+            // Cancelar la curación inmediatamente si el jugador dispara
+            if (isHealing) {
+                isHealing = false;
+                healingTimer = 0;
+                const progressContainer = document.getElementById('healingProgressContainer');
+                if (progressContainer) progressContainer.classList.add('hidden');
+                createParticles(player.x, player.y, '#ef4444', 12);
+            }
+
             let angle;
             if (isMobile && (joystickVector.x !== 0 || joystickVector.y !== 0)) angle = Math.atan2(joystickVector.y, joystickVector.x);
             else if (!isMobile) angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
             else angle = 0; 
 
-            let spread = 0;
+            playShootSound(currentWeapon);
+
             let cooldown = 200; // Pistola
 
             if (currentWeapon === 'ak47') {
-                spread = (Math.random() - 0.5) * 0.25; // Dispersión
+                let spread = (Math.random() - 0.5) * 0.25; // Dispersión
                 cooldown = 100; // Más rápido
+                bullets.push(new Bullet(player.x, player.y, angle + spread));
+            } else if (currentWeapon === 'escopeta') {
+                cooldown = 1000; // Intervalo de 1 segundo
+                for (let i = 0; i < 11; i++) {
+                    let pelletSpread = (Math.random() - 0.5) * 0.45; // Dispersión en abanico
+                    let speedVar = 11 + (Math.random() - 0.5) * 3;
+                    bullets.push(new Bullet(player.x, player.y, angle + pelletSpread, speedVar));
+                }
+            } else {
+                bullets.push(new Bullet(player.x, player.y, angle));
             }
 
-            bullets.push(new Bullet(player.x, player.y, angle + spread));
             lastFired = Date.now();
             return cooldown;
         }
@@ -687,6 +1167,14 @@
             }
         }
 
+        function useMedkit() {
+            if (medkits > 0 && !isHealing && player.health < player.maxHealth) {
+                isHealing = true;
+                healingTimer = MAX_HEAL_TIMER;
+                updateHUD();
+            }
+        }
+
         function createParticles(x, y, color, amount) { for (let i = 0; i < amount; i++) particles.push(new Particle(x, y, color)); }
         
         function updateHUD() { 
@@ -694,6 +1182,7 @@
             document.getElementById('waveDisplay').innerText = wave; 
             document.getElementById('coinDisplay').innerText = coins;
             document.getElementById('decoyDisplay').innerText = decoys;
+            document.getElementById('medkitDisplay').innerText = medkits;
             document.getElementById('weaponDisplay').innerText = currentWeapon;
             
             // Actualizar tienda también
@@ -703,10 +1192,15 @@
         function updateHealthUI() {
             const hpPercent = Math.max(0, (player.health / player.maxHealth) * 100);
             const healthBar = document.getElementById('healthBar');
+            const healthText = document.getElementById('healthText');
             healthBar.style.width = hpPercent + '%';
-            if (hpPercent > 50) healthBar.className = 'h-full bg-green-500 w-full transition-all duration-200';
-            else if (hpPercent > 20) healthBar.className = 'h-full bg-yellow-500 w-full transition-all duration-200';
-            else healthBar.className = 'h-full bg-red-600 w-full transition-all duration-200 animate-pulse';
+            
+            let baseClasses = 'h-full w-full transition-all duration-200 absolute top-0 left-0 z-0';
+            if (hpPercent > 50) healthBar.className = `${baseClasses} bg-green-500`;
+            else if (hpPercent > 20) healthBar.className = `${baseClasses} bg-yellow-500`;
+            else healthBar.className = `${baseClasses} bg-red-600 animate-pulse`;
+            
+            if (healthText) healthText.innerText = `${Math.max(0, Math.ceil(player.health))} / ${player.maxHealth}`;
         }
 
         function togglePause() {
@@ -726,6 +1220,11 @@
                 document.getElementById('buyAKBtn').classList.replace('bg-blue-600', 'bg-gray-600');
                 document.getElementById('buyAKBtn').innerHTML = `<span>Equipado</span>`;
             }
+            if(currentWeapon === 'escopeta') {
+                document.getElementById('buyShotgunBtn').disabled = true;
+                document.getElementById('buyShotgunBtn').classList.replace('bg-red-600', 'bg-gray-600');
+                document.getElementById('buyShotgunBtn').innerHTML = `<span>Equipado</span>`;
+            }
             
             shopScreen.classList.remove('hidden');
         }
@@ -741,12 +1240,23 @@
         document.getElementById('buyDecoyBtn').addEventListener('click', () => {
             if (coins >= 22) { coins -= 22; decoys++; updateHUD(); }
         });
+        document.getElementById('buyMedkitBtn').addEventListener('click', () => {
+            if (coins >= 47) { coins -= 47; medkits++; updateHUD(); }
+        });
         document.getElementById('buyAKBtn').addEventListener('click', () => {
             if (coins >= 114 && currentWeapon !== 'ak47') { 
                 coins -= 114; currentWeapon = 'ak47'; updateHUD(); 
                 document.getElementById('buyAKBtn').disabled = true;
                 document.getElementById('buyAKBtn').classList.replace('bg-blue-600', 'bg-gray-600');
                 document.getElementById('buyAKBtn').innerHTML = `<span>Equipado</span>`;
+            }
+        });
+        document.getElementById('buyShotgunBtn').addEventListener('click', () => {
+            if (coins >= 86 && currentWeapon !== 'escopeta') { 
+                coins -= 86; currentWeapon = 'escopeta'; updateHUD(); 
+                document.getElementById('buyShotgunBtn').disabled = true;
+                document.getElementById('buyShotgunBtn').classList.replace('bg-red-600', 'bg-gray-600');
+                document.getElementById('buyShotgunBtn').innerHTML = `<span>Equipado</span>`;
             }
         });
         document.getElementById('closeShopBtn').addEventListener('click', closeShop);
@@ -760,7 +1270,8 @@
 
             player = new Player();
             bullets = []; enemies = []; particles = []; explosions = []; spitProjectiles = []; puddles = []; trees = []; rocks = []; obstacles = []; groundCoins = []; activeDecoys = [];
-            score = 0; wave = 1; coins = 0; decoys = 0; currentWeapon = 'pistola'; frameCount = 0; waveAnnounceTimer = 180; 
+            score = 0; wave = 1; coins = 0; decoys = 0; medkits = 0; isHealing = false; healingTimer = 0;
+            currentWeapon = 'pistola'; frameCount = 0; waveAnnounceTimer = 180; 
             currentShopZone = null;
 
             generateBackground();
@@ -780,6 +1291,10 @@
             document.getElementById('buyAKBtn').classList.replace('bg-gray-600', 'bg-blue-600');
             document.getElementById('buyAKBtn').innerHTML = `<span>Comprar</span> <span class="bg-blue-800 px-2 py-1 rounded text-sm">114 <span class="coin-icon">$</span></span>`;
 
+            document.getElementById('buyShotgunBtn').disabled = false;
+            document.getElementById('buyShotgunBtn').classList.replace('bg-gray-600', 'bg-red-600');
+            document.getElementById('buyShotgunBtn').innerHTML = `<span>Comprar</span> <span class="bg-red-800 px-2 py-1 rounded text-sm">86 <span class="coin-icon">$</span></span>`;
+
             updateHUD(); updateHealthUI(); animate();
         }
 
@@ -789,6 +1304,44 @@
             frameCount++;
 
             ctx.drawImage(bgCanvas, 0, 0);
+
+            // Proceso de Curación (5 segundos)
+            const progressContainer = document.getElementById('healingProgressContainer');
+            const healingText = document.getElementById('healingText');
+            const healingBar = document.getElementById('healingBar');
+
+            if (isHealing) {
+                healingTimer--;
+                let progressPercent = ((MAX_HEAL_TIMER - healingTimer) / MAX_HEAL_TIMER) * 100;
+                let secondsLeft = (healingTimer / 60).toFixed(1);
+
+                if (progressContainer) progressContainer.classList.remove('hidden');
+                if (healingText) healingText.innerText = `Curando: ${secondsLeft}s`;
+                if (healingBar) healingBar.style.width = `${progressPercent}%`;
+
+                if (frameCount % 10 === 0) {
+                    playMedkitSound();
+                }
+
+                // Partículas verdes alrededor del jugador durante la curación
+                if (frameCount % 5 === 0) {
+                    createParticles(player.x + (Math.random() - 0.5) * 20, player.y + (Math.random() - 0.5) * 20, '#22c55e', 2);
+                }
+
+                if (healingTimer <= 0) {
+                    isHealing = false;
+                    medkits--;
+                    player.health = Math.min(player.maxHealth, player.health + 40);
+                    updateHUD();
+                    updateHealthUI();
+                    if (progressContainer) progressContainer.classList.add('hidden');
+                    createParticles(player.x, player.y, '#4ade80', 25);
+                }
+            } else {
+                if (progressContainer && !progressContainer.classList.contains('hidden')) {
+                    progressContainer.classList.add('hidden');
+                }
+            }
 
             // Actualizar Charcos de Ácido
             for (let i = puddles.length - 1; i >= 0; i--) {
@@ -823,9 +1376,12 @@
             }
 
             // Disparo del Jugador
-            let currentCooldown = currentWeapon === 'ak47' ? 100 : 200;
+            let currentCooldown = 200;
+            if (currentWeapon === 'ak47') currentCooldown = 100;
+            else if (currentWeapon === 'escopeta') currentCooldown = 1000;
+            
             if (mouse.isDown && Date.now() - lastFired > currentCooldown) {
-                currentCooldown = fireBullet(); 
+                fireBullet(); 
             }
 
             // Explosiones
@@ -880,6 +1436,11 @@
             // Comportamiento de Zombies y Colisión con Balas
             for (let i = enemies.length - 1; i >= 0; i--) {
                 let enemy = enemies[i]; enemy.update();
+                
+                if (frameCount % 120 === 0 && Math.random() < 0.15) {
+                    playZombieGroan();
+                }
+
                 if (Math.hypot(player.x - enemy.x, player.y - enemy.y) < player.radius + enemy.radius) {
                     if (enemy.type === 'exploder') { explosions.push(new Explosion(enemy.x, enemy.y)); enemies.splice(i, 1); continue; } 
                     else { player.health -= (enemy.type === 'tank' ? 2 : (enemy.type === 'fast' ? 0.5 : 1)); updateHealthUI(); ctx.fillStyle = 'rgba(255, 0, 0, 0.2)'; ctx.fillRect(0, 0, width, height); }
@@ -891,6 +1452,7 @@
                         enemy.health -= 1; createParticles(bullet.x, bullet.y, enemy.color, 5); bullets.splice(j, 1);
                         if (enemy.type !== 'tank') { enemy.x += bullet.velocity.x * 0.3; enemy.y += bullet.velocity.y * 0.3; }
                         if (enemy.health <= 0) {
+                            playZombieScream();
                             createParticles(enemy.x, enemy.y, enemy.color, 15); spawnCoinDrop(enemy); score += enemy.scoreValue; updateHUD();
                             if (enemy.type === 'exploder') explosions.push(new Explosion(enemy.x, enemy.y));
                             enemies.splice(i, 1);
@@ -906,10 +1468,12 @@
             trees.forEach(tree => tree.drawCanopy());
 
             // Tasa de aparición de enemigos
-            if (frameCount % Math.max(30, 100 - (wave * 5)) === 0) spawnEnemy();
+            let spawnInterval = Math.max(30, 100 - (wave * 5));
+            if (frameCount % spawnInterval === 0) spawnEnemy();
 
-            // Progresión de oleadas y lógica de Tienda
-            if (score > wave * 300) { 
+            // Progresión de oleadas y lógica de Tienda (Las oleadas 5+ requieren más puntos y duran más)
+            let requiredScore = wave < 5 ? wave * 300 : 1200 + (wave - 4) * 800;
+            if (score >= requiredScore) { 
                 wave++; 
                 player.health = Math.min(player.maxHealth, player.health + 25); 
                 updateHUD(); updateHealthUI(); waveAnnounceTimer = 180; 
@@ -928,7 +1492,7 @@
             }
 
             if (player.health <= 0) {
-                gameActive = false; hud.classList.add('hidden'); joystickZone.style.display = 'none'; shootBtn.style.display = 'none'; decoyBtn.style.display = 'none';
+                gameActive = false; hud.classList.add('hidden'); joystickZone.style.display = 'none'; shootBtn.style.display = 'none'; decoyBtn.style.display = 'none'; medkitBtn.style.display = 'none';
                 document.getElementById('finalScore').innerText = score; document.getElementById('finalWave').innerText = wave;
                 gameOverScreen.classList.remove('hidden');
             }
